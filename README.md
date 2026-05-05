@@ -56,8 +56,6 @@ xcodebuild -project ClipFlow.xcodeproj -scheme ClipFlow -configuration Release b
 
 ## 截图
 
-![主窗口](screenshots/main-window.png)
-![详情视图](screenshots/detail-view.png)
 ![设置](screenshots/settings.png)
 ![菜单栏](screenshots/menu-bar.png)
 
