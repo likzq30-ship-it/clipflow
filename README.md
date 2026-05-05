@@ -1,72 +1,76 @@
 # ClipFlow
 
-A lightweight macOS menu bar clipboard manager with AI-powered summarization and categorization via Ollama.
+macOS 菜单栏剪贴板历史管理工具，支持本地 AI 智能汇总与分类。
 
-## Features
+## 功能特性
 
-- **Clipboard History** — Automatically captures text copied to the macOS clipboard
-- **Smart Categorization** — Built-in categories: URL, Email, Code, Number, Chinese, English, Mixed
-- **AI Summarization** — One-click AI summary of clipboard content via local Ollama
-- **AI Custom Categories** — Define custom categories with prompts; AI classifies content automatically
-- **Search & Filter** — Full-text search and category-based filtering
-- **Favorites** — Star important items to prevent them from being cleared
-- **Configurable Retention** — Set history retention from 1 to 30 days
-- **Global Hotkey** — Customizable keyboard shortcut to toggle the popover
-- **Privacy First** — All data stored locally in SQLite; AI processing runs on your own machine
+- **剪贴板历史** — 自动记录 macOS 文本剪贴板内容，0.5 秒轮询
+- **智能分类** — 内置分类：链接、邮件、代码、数字、中文、英文、中英混合、其他
+- **AI 汇总** — 一键调用本地 Ollama 对剪贴板内容生成一句话摘要
+- **AI 自定义分类** — 自定义分类名称和匹配提示词，AI 自动归类
+- **搜索与筛选** — 全文搜索 + 分类侧边栏
+- **收藏** — 标记重要记录，收藏不会被自动清理
+- **自动清理** — 可配置 1~30 天保留期，到期自动删除非收藏记录
+- **全局快捷键** — 自定义快捷键呼出面板，默认 ⌘⇧V
+- **隐私优先** — 数据本地 SQLite 存储，AI 功能依赖本地 Ollama
 
-## Requirements
+## 系统要求
 
-- macOS 13.0 or later
-- Xcode 15.0+ (for building)
-- [Ollama](https://ollama.com) (optional, for AI features)
+- macOS 13.0+
+- Xcode 15.0+（构建需要）
+- [Ollama](https://ollama.com)（可选，AI 功能需要）
 
-## Installation
-
-### Download
-
-Download the latest release from the [Releases](https://github.com/your-org/clipflow/releases) page.
-
-### Build from Source
+## 构建
 
 ```bash
-# Clone the repository
-git clone https://github.com/your-org/clipflow.git
+git clone https://github.com/likzq30-ship-it/clipflow.git
 cd clipflow
-
-# Install dependencies & generate Xcode project (optional — .xcodeproj is committed)
-# brew install xcodegen
-# xcodegen generate
-
-# Build
 xcodebuild -project ClipFlow.xcodeproj -scheme ClipFlow -configuration Release build
-
-# The app will be at:
-# build/Release/ClipFlow.app
 ```
 
-Or open `ClipFlow.xcodeproj` in Xcode and press Cmd+B.
+产物位于 Xcode DerivedData 目录，或打开 `ClipFlow.xcodeproj` 用 Xcode 直接 Cmd+B。
 
-## AI Features Setup
+## 使用方法
 
-1. Install [Ollama](https://ollama.com)
-2. Pull a model: `ollama pull qwen2.5:0.5b` (or any model you prefer)
-3. Launch Ollama: `ollama serve`
-4. In ClipFlow Settings → AI tab, configure the API URL (default: `http://localhost:11434`) and model name
+- ClipFlow 运行后图标显示在菜单栏
+- 点击图标或按快捷键 ⌘⇧V 呼出面板
+- 点击任意记录可复制回剪贴板
+- 搜索栏支持全文检索
+- 左侧分类栏可按类型筛选
+- 悬停显示收藏和删除按钮
+- 右键菜单栏图标 → 设置 / 退出
 
-## Usage
+## Ollama / AI 功能
 
-- ClipFlow runs in the menu bar
-- Click the clipboard icon or press the global hotkey (default: ⌘⇧V) to open the popover
-- Click any item to copy it back to the clipboard
-- Use the search bar to find items
-- Filter by category using the sidebar
-- Star items to mark them as favorites
-- Right-click the menu bar icon for settings and quit options
+1. 安装并启动 [Ollama](https://ollama.com)
+2. 拉取模型：`ollama pull qwen2.5:0.5b`
+3. 启动服务：`ollama serve`
+4. 在 ClipFlow 设置 → AI 标签页中配置 API 地址（默认 `http://localhost:11434`）和模型名称
+5. 在剪贴板详情页点击「生成汇总」或「AI 分类」
 
-## Privacy
+## 隐私说明
 
-ClipFlow stores all clipboard data locally in a SQLite database at `~/Library/Application Support/ClipFlow/clipflow.sqlite3`. No data is sent to any server unless you configure AI features with a remote Ollama instance — and even then, only the content you explicitly choose to summarize or categorize is sent.
+- 所有剪贴板数据存储在本地 SQLite：`~/Library/Application Support/ClipFlow/clipflow.sqlite3`
+- 不使用 AI 功能时，数据完全本地，不上传任何内容
+- 使用 AI 功能时，仅将你选中的剪贴板内容发送到本地 Ollama 实例（默认 localhost）
+
+## 截图
+
+> 截图占位 — 可在此处添加应用界面截图
+
+## Roadmap
+
+- [ ] 图片剪贴板支持
+- [ ] iCloud 同步
+- [ ] 更多 AI 后端支持（OpenAI / Anthropic）
+- [ ] 剪贴板内容编辑器
+- [ ] 多窗口模式
 
 ## License
 
-MIT License. See [LICENSE](LICENSE) for details.
+MIT License. 详见 [LICENSE](LICENSE).
+
+## Authors
+
+- [likzq](https://github.com/likzq30-ship-it)
+- Claude Code
