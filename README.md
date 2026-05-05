@@ -56,15 +56,10 @@ xcodebuild -project ClipFlow.xcodeproj -scheme ClipFlow -configuration Release b
 
 ## 截图
 
-> 截图占位 — 可在此处添加应用界面截图
-
-## Roadmap
-
-- [ ] 图片剪贴板支持
-- [ ] iCloud 同步
-- [ ] 更多 AI 后端支持（OpenAI / Anthropic）
-- [ ] 剪贴板内容编辑器
-- [ ] 多窗口模式
+![主窗口](screenshots/main-window.png)
+![详情视图](screenshots/detail-view.png)
+![设置](screenshots/settings.png)
+![菜单栏](screenshots/menu-bar.png)
 
 ## License
 
