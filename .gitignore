@@ -1,0 +1,55 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
+
+# Thumbnails
+._*
+
+# Xcode user-specific state
+*.xcuserstate
+*.xcuserdatad
+xcuserdata/
+xcshareddata/IDEWorkspaceChecks.plist
+
+# Editor backups & temp files
+*.bak
+*~
+*.tmp
+*.swp
+\#*\#
+
+# Build outputs
+build/
+DerivedData/
+CompilationCache.noindex/
+ModuleCache.noindex/
+Intermediates.noindex/
+
+# Binary distributables
+*.dmg
+*.app
+*.ipa
+*.xcarchive
+*.dSYM
+*.dSYM/
+
+# Swift Package Manager
+.build/
+.swiftpm/
+Packages/
+
+# Code injection
+*.xcent
+*.xcent.der
+
+# Archives
+*.zip
+*.tar.gz
+*.tgz
+
+# IDE
+.idea/
+.vscode/
