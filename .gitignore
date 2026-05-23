@@ -53,3 +53,5 @@ Packages/
 # IDE
 .idea/
 .vscode/
+.claude/
+.omc/

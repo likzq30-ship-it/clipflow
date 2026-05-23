@@ -53,4 +53,3 @@ MIT License. 详见 [LICENSE](LICENSE).
 ## Authors
 
 - [likzq](https://github.com/likzq30-ship-it)
-- Claude Code
