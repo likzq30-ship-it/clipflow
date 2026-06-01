@@ -1,25 +1,24 @@
 # ClipFlow
 
-macOS menu bar clipboard history manager.
+A clipboard history tool for macOS. Lives in your menu bar.
 
 **[中文](README_CN.md)** | English
 
-## Features
+## What it does
 
-- **Clipboard History** — Auto-record macOS text clipboard, 0.5s polling
-- **Smart Classification** — Built-in categories: Link, Email, Code, Number, Chinese, English, Mixed, Other
-- **Search & Filter** — Full-text search + category sidebar
-- **Favorites** — Pin important records, favorites won't be auto-cleaned
-- **Auto Cleanup** — Configurable 1–30 day retention, auto-delete non-favorites
-- **Global Hotkey** — Custom hotkey to toggle panel, default ⌘⇧V
-- **Privacy First** — Local SQLite storage
+Keeps track of everything you copy. Text gets auto-saved every half second.
 
-## Requirements
+Classifies clips into categories — links, emails, code, numbers, Chinese, English, mixed, whatever. You can search through them, filter by type, and pin stuff you want to keep.
 
-- macOS 13.0+
-- Xcode 15.0+
+Pinned items survive auto-cleanup. You set how many days to keep stuff (1–30), the rest gets deleted automatically.
+
+Hit ⌘⇧V (customizable) to pop open the panel. Click anything to copy it back.
+
+Everything stays local in a SQLite file. Nothing leaves your machine.
 
 ## Build
+
+Requires macOS 13+ and Xcode 15+.
 
 ```bash
 git clone https://github.com/likzq30-ship-it/clipflow.git
@@ -27,21 +26,23 @@ cd clipflow
 xcodebuild -project ClipFlow.xcodeproj -scheme ClipFlow -configuration Release build
 ```
 
-Or open `ClipFlow.xcodeproj` in Xcode and Cmd+B.
+Or just open the `.xcodeproj` and hit Cmd+B.
 
-## Usage
+## How to use
 
-ClipFlow lives in the menu bar. Click the icon or press ⌘⇧V to open the panel.
+Icon sits in the menu bar. Click it or use the hotkey.
 
-- Click any record to copy it back
-- Search bar for full-text search
-- Sidebar to filter by category
-- Hover to show favorite & delete buttons
-- Right-click icon → Settings / Quit
+- Click a clip to copy it
+- Type in the search bar to filter
+- Sidebar has category filters
+- Hover over items for pin/delete buttons
+- Right-click the icon for settings or to quit
 
-## Privacy
+## Where's my data
 
-All data stored locally in `~/Library/Application Support/ClipFlow/clipflow.sqlite3`. Nothing uploaded.
+`~/Library/Application Support/ClipFlow/clipflow.sqlite3`
+
+That's it. Local only.
 
 ## Screenshot
 
@@ -49,8 +50,4 @@ All data stored locally in `~/Library/Application Support/ClipFlow/clipflow.sqli
 
 ## License
 
-MIT
-
-## Author
-
-[likzq](https://github.com/likzq30-ship-it)
+MIT — [likzq](https://github.com/likzq30-ship-it)
