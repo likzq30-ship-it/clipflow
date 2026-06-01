@@ -17,7 +17,7 @@ macOS menu bar clipboard history manager.
 ## Requirements
 
 - macOS 13.0+
-- Xcode 15.0+ (required for build)
+- Xcode 15.0+
 
 ## Build
 
@@ -27,31 +27,30 @@ cd clipflow
 xcodebuild -project ClipFlow.xcodeproj -scheme ClipFlow -configuration Release build
 ```
 
-Output is in Xcode DerivedData, or open `ClipFlow.xcodeproj` in Xcode and press Cmd+B.
+Or open `ClipFlow.xcodeproj` in Xcode and Cmd+B.
 
 ## Usage
 
-- ClipFlow runs in the menu bar
-- Click icon or press ⌘⇧V to open panel
-- Click any record to copy back to clipboard
-- Search bar supports full-text search
-- Left sidebar filters by category
+ClipFlow lives in the menu bar. Click the icon or press ⌘⇧V to open the panel.
+
+- Click any record to copy it back
+- Search bar for full-text search
+- Sidebar to filter by category
 - Hover to show favorite & delete buttons
-- Right-click menu bar icon → Settings / Quit
+- Right-click icon → Settings / Quit
 
 ## Privacy
 
-- All clipboard data stored locally in SQLite: `~/Library/Application Support/ClipFlow/clipflow.sqlite3`
-- Data stays local, nothing is uploaded
+All data stored locally in `~/Library/Application Support/ClipFlow/clipflow.sqlite3`. Nothing uploaded.
 
-## Screenshots
+## Screenshot
 
 ![Menu Bar](screenshots/menu-bar.png)
 
 ## License
 
-MIT License. See [LICENSE](LICENSE).
+MIT
 
-## Authors
+## Author
 
-- [likzq](https://github.com/likzq30-ship-it)
+[likzq](https://github.com/likzq30-ship-it)
