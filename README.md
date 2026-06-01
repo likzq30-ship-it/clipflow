@@ -1,24 +1,25 @@
 # ClipFlow
 
-A clipboard history tool for macOS. Lives in your menu bar.
+macOS clipboard history in the menu bar.
 
 **[中文](README_CN.md)** | English
 
-## What it does
+## Features
 
-Keeps track of everything you copy. Text gets auto-saved every half second.
+- Records everything you copy (polls every 0.5s)
+- Auto-classifies clips: links, emails, code, numbers, Chinese/English/mixed
+- Full-text search with category sidebar
+- Pin items to keep them from auto-cleanup
+- Auto-cleanup after 1–30 days (configurable)
+- Global hotkey ⌘⇧V (customizable)
+- All data stored locally in SQLite
 
-Classifies clips into categories — links, emails, code, numbers, Chinese, English, mixed, whatever. You can search through them, filter by type, and pin stuff you want to keep.
+## Requirements
 
-Pinned items survive auto-cleanup. You set how many days to keep stuff (1–30), the rest gets deleted automatically.
-
-Hit ⌘⇧V (customizable) to pop open the panel. Click anything to copy it back.
-
-Everything stays local in a SQLite file. Nothing leaves your machine.
+- macOS 13.0+
+- Xcode 15.0+
 
 ## Build
-
-Requires macOS 13+ and Xcode 15+.
 
 ```bash
 git clone https://github.com/likzq30-ship-it/clipflow.git
@@ -26,23 +27,20 @@ cd clipflow
 xcodebuild -project ClipFlow.xcodeproj -scheme ClipFlow -configuration Release build
 ```
 
-Or just open the `.xcodeproj` and hit Cmd+B.
+Or open `ClipFlow.xcodeproj` and Cmd+B.
 
-## How to use
+## Usage
 
-Icon sits in the menu bar. Click it or use the hotkey.
+- Menu bar icon — click or ⌘⇧V to open
+- Click a clip to copy it back
+- Search bar for text search
+- Sidebar filters by category
+- Hover for pin/delete buttons
+- Right-click icon for settings
 
-- Click a clip to copy it
-- Type in the search bar to filter
-- Sidebar has category filters
-- Hover over items for pin/delete buttons
-- Right-click the icon for settings or to quit
+## Privacy
 
-## Where's my data
-
-`~/Library/Application Support/ClipFlow/clipflow.sqlite3`
-
-That's it. Local only.
+Local SQLite at `~/Library/Application Support/ClipFlow/clipflow.sqlite3`. No network, no uploads.
 
 ## Screenshot
 
