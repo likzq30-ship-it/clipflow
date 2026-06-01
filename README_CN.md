@@ -1,25 +1,24 @@
 # ClipFlow
 
-macOS 菜单栏剪贴板历史管理工具。
+macOS 剪贴板历史工具，常驻菜单栏。
 
 English | **[中文](README_CN.md)**
 
 ## 功能
 
-- **剪贴板历史** — 自动记录文本剪贴板，0.5 秒轮询
-- **智能分类** — 链接、邮件、代码、数字、中文、英文、中英混合、其他
-- **搜索与筛选** — 全文搜索 + 分类侧边栏
-- **收藏** — 标记重要记录，不会被自动清理
-- **自动清理** — 1~30 天保留期可配，到期删除非收藏记录
-- **全局快捷键** — 默认 ⌘⇧V，可自定义
-- **本地存储** — SQLite，数据不上传
+你复制过的东西都会自动存下来，每半秒检查一次。
 
-## 环境要求
+剪贴内容会自动分类：链接、邮件、代码、数字、中文、英文、中英混合等等。可以搜索，可以按分类筛选，重要的可以收藏。
 
-- macOS 13.0+
-- Xcode 15.0+
+收藏的内容不会被自动清理。保留天数自己设（1~30天），到期的自动删。
+
+按 ⌘⇧V（可改）呼出面板，点一下就复制回去。
+
+数据全在本地 SQLite，不联网不上传。
 
 ## 构建
+
+需要 macOS 13+ 和 Xcode 15+。
 
 ```bash
 git clone https://github.com/likzq30-ship-it/clipflow.git
@@ -27,21 +26,23 @@ cd clipflow
 xcodebuild -project ClipFlow.xcodeproj -scheme ClipFlow -configuration Release build
 ```
 
-或者 Xcode 里打开 `ClipFlow.xcodeproj` 直接 Cmd+B。
+或者 Xcode 打开 `.xcodeproj` 直接 Cmd+B。
 
 ## 使用
 
-运行后常驻菜单栏，点图标或按 ⌘⇧V 呼出面板。
+菜单栏常驻，点图标或快捷键打开。
 
-- 点击记录复制回剪贴板
-- 搜索栏支持全文检索
-- 侧边栏按分类筛选
-- 悬停显示收藏和删除
-- 右键图标 → 设置 / 退出
+- 点击记录复制
+- 搜索栏全文检索
+- 侧边栏按类型筛选
+- 悬停出现收藏和删除
+- 右键图标进设置或退出
 
-## 隐私
+## 数据在哪
 
-数据存在本地 `~/Library/Application Support/ClipFlow/clipflow.sqlite3`，不上传。
+`~/Library/Application Support/ClipFlow/clipflow.sqlite3`
+
+仅本地，不上传。
 
 ## 截图
 
@@ -49,8 +50,4 @@ xcodebuild -project ClipFlow.xcodeproj -scheme ClipFlow -configuration Release b
 
 ## License
 
-MIT
-
-## 作者
-
-[likzq](https://github.com/likzq30-ship-it)
+MIT — [likzq](https://github.com/likzq30-ship-it)
