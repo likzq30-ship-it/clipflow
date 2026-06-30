@@ -24,7 +24,7 @@ class ClipboardMonitor: ObservableObject {
         for i in 0..<items.count where items[i].category == .other && items[i].contentType == .text {
             let newCat = ClipboardItem.categorize(items[i].content)
             if newCat != .other {
-                items[i] = ClipboardItem(id: items[i].id, content: items[i].content, contentType: items[i].contentType, category: newCat, timestamp: items[i].timestamp, isFavorite: items[i].isFavorite, aiSummary: items[i].aiSummary)
+                items[i] = ClipboardItem(id: items[i].id, content: items[i].content, contentType: items[i].contentType, category: newCat, customCategory: items[i].customCategory, timestamp: items[i].timestamp, isFavorite: items[i].isFavorite, aiSummary: items[i].aiSummary)
                 database.update(items[i])
             }
         }
@@ -107,13 +107,13 @@ class ClipboardMonitor: ObservableObject {
         items.removeAll { !$0.isFavorite }
     }
 
-    func updateAISummary(for item: ClipboardItem, summary: String) {
+    func updateAISummary(for item: ClipboardItem, summary: String?) {
         guard let index = items.firstIndex(where: { $0.id == item.id }) else { return }
         items[index].aiSummary = summary
         database.update(items[index])
     }
 
-    func updateCustomCategory(for item: ClipboardItem, customCat: String) {
+    func updateCustomCategory(for item: ClipboardItem, customCat: String?) {
         guard let index = items.firstIndex(where: { $0.id == item.id }) else { return }
         items[index].customCategory = customCat
         database.update(items[index])

@@ -1,5 +1,4 @@
 import Foundation
-import HotKey
 import AppKit
 import Carbon
 
@@ -8,32 +7,48 @@ class HotkeyService: ObservableObject {
 
     @Published var shortcutManager = ShortcutManager()
 
-    private var hotKey: HotKey?
+    private var hotKeyRef: EventHotKeyRef?
+    private var eventHandler: EventHandlerRef?
+    private static weak var activeService: HotkeyService?
 
     var onHotkeyPressed: (() -> Void)?
 
     private init() {
+        Self.activeService = self
         setupHotKey()
     }
 
+    deinit {
+        unregisterHotKey()
+    }
+
     func setupHotKey() {
-        hotKey = nil
-
+        unregisterHotKey()
         let shortcut = shortcutManager.currentShortcut
+        let hotKeyID = EventHotKeyID(signature: OSType(0x43464C57), id: 1)
 
-        guard let key = Key(carbonKeyCode: shortcut.keyCode) else { return }
+        var eventType = EventTypeSpec(eventClass: OSType(kEventClassKeyboard), eventKind: UInt32(kEventHotKeyPressed))
+        InstallEventHandler(GetApplicationEventTarget(), { _, event, _ in
+            var hotKeyID = EventHotKeyID()
+            GetEventParameter(
+                event,
+                EventParamName(kEventParamDirectObject),
+                EventParamType(typeEventHotKeyID),
+                nil,
+                MemoryLayout<EventHotKeyID>.size,
+                nil,
+                &hotKeyID
+            )
+            guard hotKeyID.signature == OSType(0x43464C57), hotKeyID.id == 1 else {
+                return noErr
+            }
+            DispatchQueue.main.async {
+                HotkeyService.activeService?.onHotkeyPressed?()
+            }
+            return noErr
+        }, 1, &eventType, nil, &eventHandler)
 
-        var modifiers: NSEvent.ModifierFlags = []
-
-        if shortcut.modifiers & UInt32(controlKey) != 0 { modifiers.insert(.control) }
-        if shortcut.modifiers & UInt32(optionKey) != 0 { modifiers.insert(.option) }
-        if shortcut.modifiers & UInt32(shiftKey) != 0 { modifiers.insert(.shift) }
-        if shortcut.modifiers & UInt32(cmdKey) != 0 { modifiers.insert(.command) }
-
-        hotKey = HotKey(key: key, modifiers: modifiers)
-        hotKey?.keyDownHandler = { [weak self] in
-            self?.onHotkeyPressed?()
-        }
+        RegisterEventHotKey(shortcut.keyCode, shortcut.modifiers, hotKeyID, GetApplicationEventTarget(), 0, &hotKeyRef)
     }
 
     func updateShortcut(_ shortcut: ShortcutMapping) {
@@ -44,5 +59,16 @@ class HotkeyService: ObservableObject {
     func resetToDefault() {
         shortcutManager.reset()
         setupHotKey()
+    }
+
+    private func unregisterHotKey() {
+        if let hotKeyRef {
+            UnregisterEventHotKey(hotKeyRef)
+            self.hotKeyRef = nil
+        }
+        if let eventHandler {
+            RemoveEventHandler(eventHandler)
+            self.eventHandler = nil
+        }
     }
 }

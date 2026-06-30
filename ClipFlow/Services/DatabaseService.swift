@@ -1,20 +1,10 @@
 import Foundation
-import SQLite
+import SQLite3
 
 class DatabaseService: ObservableObject {
     static let shared = DatabaseService()
 
-    private var db: Connection?
-    private let clipboardItems = Table("clipboard_items")
-
-    private let id = Expression<String>("id")
-    private let content = Expression<String>("content")
-    private let contentType = Expression<String>("content_type")
-    private let category = Expression<String>("category")
-    private let customCategory = Expression<String?>("custom_category")
-    private let timestamp = Expression<Double>("timestamp")
-    private let isFavorite = Expression<Bool>("is_favorite")
-    private let aiSummary = Expression<String?>("ai_summary")
+    private var db: OpaquePointer?
 
     var retentionDays: Int {
         get { UserDefaults.standard.integer(forKey: "retention_days") == 0 ? 15 : UserDefaults.standard.integer(forKey: "retention_days") }
@@ -25,16 +15,24 @@ class DatabaseService: ObservableObject {
         setupDatabase()
     }
 
+    deinit {
+        sqlite3_close(db)
+    }
+
     private func setupDatabase() {
-        do {
-            let path = getDatabasePath()
-            db = try Connection(path)
-            try createTable()
-            try migrate()
-            cleanupOldRecords()
-        } catch {
-            print("Database setup error: \(error)")
+        let path = getDatabasePath()
+        guard sqlite3_open(path, &db) == SQLITE_OK else {
+            print("Database open error: \(lastError)")
+            return
         }
+        createTable()
+        migrate()
+        cleanupOldRecords()
+    }
+
+    private var lastError: String {
+        guard let db, let message = sqlite3_errmsg(db) else { return "unknown" }
+        return String(cString: message)
     }
 
     private func getDatabasePath() -> String {
@@ -47,115 +45,188 @@ class DatabaseService: ObservableObject {
         return appFolder.appendingPathComponent("clipflow.sqlite3").path
     }
 
-    private func createTable() throws {
-        try db?.run(clipboardItems.create(ifNotExists: true) { t in
-            t.column(id, primaryKey: true)
-            t.column(content)
-            t.column(contentType)
-            t.column(category, defaultValue: ClipboardItem.Category.other.rawValue)
-            t.column(customCategory)
-            t.column(timestamp)
-            t.column(isFavorite, defaultValue: false)
-            t.column(aiSummary)
-        })
+    private func createTable() {
+        execute("""
+            CREATE TABLE IF NOT EXISTS clipboard_items (
+                id TEXT PRIMARY KEY,
+                content TEXT NOT NULL,
+                content_type TEXT NOT NULL,
+                category TEXT NOT NULL DEFAULT 'other',
+                custom_category TEXT,
+                timestamp REAL NOT NULL,
+                is_favorite INTEGER NOT NULL DEFAULT 0,
+                ai_summary TEXT
+            )
+            """)
     }
 
-    private func migrate() throws {
-        let columns = try db?.prepare("PRAGMA table_info(clipboard_items)")
-        let names = columns?.compactMap { $0[1] as? String } ?? []
+    private func migrate() {
+        let names = columnNames()
         if !names.contains("category") {
-            try db?.run(clipboardItems.addColumn(category, defaultValue: "other"))
+            execute("ALTER TABLE clipboard_items ADD COLUMN category TEXT NOT NULL DEFAULT 'other'")
         }
         if !names.contains("custom_category") {
-            try db?.run(clipboardItems.addColumn(self.customCategory, defaultValue: nil))
+            execute("ALTER TABLE clipboard_items ADD COLUMN custom_category TEXT")
         }
+        if !names.contains("ai_summary") {
+            execute("ALTER TABLE clipboard_items ADD COLUMN ai_summary TEXT")
+        }
+    }
+
+    private func columnNames() -> Set<String> {
+        guard let db else { return [] }
+        var statement: OpaquePointer?
+        guard sqlite3_prepare_v2(db, "PRAGMA table_info(clipboard_items)", -1, &statement, nil) == SQLITE_OK else {
+            return []
+        }
+        defer { sqlite3_finalize(statement) }
+
+        var names = Set<String>()
+        while sqlite3_step(statement) == SQLITE_ROW {
+            if let text = sqlite3_column_text(statement, 1) {
+                names.insert(String(cString: text))
+            }
+        }
+        return names
     }
 
     func cleanupOldRecords() {
-        let days = retentionDays
-        let cutoff = Date().addingTimeInterval(-Double(days) * 24 * 60 * 60).timeIntervalSince1970
-        do {
-            let old = clipboardItems.filter(timestamp < cutoff && isFavorite == false)
-            try db?.run(old.delete())
-        } catch {
-            print("Cleanup error: \(error)")
+        let cutoff = Date().addingTimeInterval(-Double(retentionDays) * 24 * 60 * 60).timeIntervalSince1970
+        run("DELETE FROM clipboard_items WHERE timestamp < ? AND is_favorite = 0") { statement in
+            sqlite3_bind_double(statement, 1, cutoff)
         }
     }
 
     func save(_ item: ClipboardItem) {
-        do {
-            try db?.run(clipboardItems.insert(
-                id <- item.id.uuidString,
-                content <- item.content,
-                contentType <- item.contentType.rawValue,
-                category <- item.category.rawValue,
-                customCategory <- item.customCategory,
-                timestamp <- item.timestamp.timeIntervalSince1970,
-                isFavorite <- item.isFavorite,
-                aiSummary <- item.aiSummary
-            ))
-        } catch {
-            print("Save error: \(error)")
+        run("""
+            INSERT INTO clipboard_items
+            (id, content, content_type, category, custom_category, timestamp, is_favorite, ai_summary)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            """) { statement in
+            bind(item.id.uuidString, to: 1, in: statement)
+            bind(item.content, to: 2, in: statement)
+            bind(item.contentType.rawValue, to: 3, in: statement)
+            bind(item.category.rawValue, to: 4, in: statement)
+            bind(item.customCategory, to: 5, in: statement)
+            sqlite3_bind_double(statement, 6, item.timestamp.timeIntervalSince1970)
+            sqlite3_bind_int(statement, 7, item.isFavorite ? 1 : 0)
+            bind(item.aiSummary, to: 8, in: statement)
         }
     }
 
     func fetchAll() -> [ClipboardItem] {
+        guard let db else { return [] }
+        let sql = """
+            SELECT id, content, content_type, category, custom_category, timestamp, is_favorite, ai_summary
+            FROM clipboard_items
+            ORDER BY timestamp DESC
+            """
+        var statement: OpaquePointer?
+        guard sqlite3_prepare_v2(db, sql, -1, &statement, nil) == SQLITE_OK else {
+            print("Fetch error: \(lastError)")
+            return []
+        }
+        defer { sqlite3_finalize(statement) }
+
         var items: [ClipboardItem] = []
-        do {
-            for row in try db!.prepare(clipboardItems.order(timestamp.desc)) {
-                if let item = rowToItem(row) { items.append(item) }
+        while sqlite3_step(statement) == SQLITE_ROW {
+            if let item = rowToItem(statement) {
+                items.append(item)
             }
-        } catch {
-            print("Fetch error: \(error)")
         }
         return items
     }
 
     func update(_ item: ClipboardItem) {
-        do {
-            let record = clipboardItems.filter(id == item.id.uuidString)
-            try db?.run(record.update(
-                category <- item.category.rawValue,
-                customCategory <- item.customCategory,
-                isFavorite <- item.isFavorite,
-                aiSummary <- item.aiSummary
-            ))
-        } catch {
-            print("Update error: \(error)")
+        run("""
+            UPDATE clipboard_items
+            SET category = ?, custom_category = ?, is_favorite = ?, ai_summary = ?
+            WHERE id = ?
+            """) { statement in
+            bind(item.category.rawValue, to: 1, in: statement)
+            bind(item.customCategory, to: 2, in: statement)
+            sqlite3_bind_int(statement, 3, item.isFavorite ? 1 : 0)
+            bind(item.aiSummary, to: 4, in: statement)
+            bind(item.id.uuidString, to: 5, in: statement)
         }
     }
 
     func delete(_ item: ClipboardItem) {
-        do {
-            try db?.run(clipboardItems.filter(id == item.id.uuidString).delete())
-        } catch {
-            print("Delete error: \(error)")
+        run("DELETE FROM clipboard_items WHERE id = ?") { statement in
+            bind(item.id.uuidString, to: 1, in: statement)
         }
     }
 
     func exists(content: String) -> Bool {
-        do {
-            return try db?.pluck(clipboardItems.filter(self.content == content)) != nil
-        } catch {
+        guard let db else { return false }
+        var statement: OpaquePointer?
+        guard sqlite3_prepare_v2(db, "SELECT 1 FROM clipboard_items WHERE content = ? LIMIT 1", -1, &statement, nil) == SQLITE_OK else {
             return false
+        }
+        defer { sqlite3_finalize(statement) }
+        bind(content, to: 1, in: statement)
+        return sqlite3_step(statement) == SQLITE_ROW
+    }
+
+    private func execute(_ sql: String) {
+        guard let db else { return }
+        if sqlite3_exec(db, sql, nil, nil, nil) != SQLITE_OK {
+            print("SQLite error: \(lastError)")
         }
     }
 
-    private func rowToItem(_ row: Row) -> ClipboardItem? {
-        guard let uuid = UUID(uuidString: row[id]),
-              let cType = ClipboardItem.ContentType(rawValue: row[contentType]) else { return nil }
+    private func run(_ sql: String, bindValues: (OpaquePointer?) -> Void) {
+        guard let db else { return }
+        var statement: OpaquePointer?
+        guard sqlite3_prepare_v2(db, sql, -1, &statement, nil) == SQLITE_OK else {
+            print("SQLite prepare error: \(lastError)")
+            return
+        }
+        defer { sqlite3_finalize(statement) }
 
-        let cat = ClipboardItem.Category(rawValue: row[category]) ?? .other
+        bindValues(statement)
+        if sqlite3_step(statement) != SQLITE_DONE {
+            print("SQLite step error: \(lastError)")
+        }
+    }
+
+    private func rowToItem(_ statement: OpaquePointer?) -> ClipboardItem? {
+        guard let idText = sqlite3_column_text(statement, 0),
+              let uuid = UUID(uuidString: String(cString: idText)),
+              let contentText = sqlite3_column_text(statement, 1),
+              let contentTypeText = sqlite3_column_text(statement, 2),
+              let cType = ClipboardItem.ContentType(rawValue: String(cString: contentTypeText)) else {
+            return nil
+        }
+
+        let categoryText = sqlite3_column_text(statement, 3).map { String(cString: $0) } ?? ClipboardItem.Category.other.rawValue
+        let cat = ClipboardItem.Category(rawValue: categoryText) ?? .other
 
         return ClipboardItem(
             id: uuid,
-            content: row[content],
+            content: String(cString: contentText),
             contentType: cType,
             category: cat,
-            customCategory: row[customCategory],
-            timestamp: Date(timeIntervalSince1970: row[timestamp]),
-            isFavorite: row[isFavorite],
-            aiSummary: row[aiSummary]
+            customCategory: optionalText(statement, 4),
+            timestamp: Date(timeIntervalSince1970: sqlite3_column_double(statement, 5)),
+            isFavorite: sqlite3_column_int(statement, 6) != 0,
+            aiSummary: optionalText(statement, 7)
         )
     }
+
+    private func optionalText(_ statement: OpaquePointer?, _ index: Int32) -> String? {
+        guard sqlite3_column_type(statement, index) != SQLITE_NULL,
+              let text = sqlite3_column_text(statement, index) else { return nil }
+        return String(cString: text)
+    }
+}
+
+private let sqliteTransient = unsafeBitCast(-1, to: sqlite3_destructor_type.self)
+
+private func bind(_ value: String?, to index: Int32, in statement: OpaquePointer?) {
+    guard let value else {
+        sqlite3_bind_null(statement, index)
+        return
+    }
+    sqlite3_bind_text(statement, index, value, -1, sqliteTransient)
 }

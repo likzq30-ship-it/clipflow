@@ -6,14 +6,6 @@ options:
   xcodeVersion: "15.0"
   generateEmptyDirectories: true
 
-packages:
-  SQLite:
-    url: https://github.com/stephencelis/SQLite.swift
-    from: "0.15.0"
-  HotKey:
-    url: https://github.com/soffes/HotKey
-    from: "0.2.0"
-
 targets:
   ClipFlow:
     type: application
@@ -24,7 +16,7 @@ targets:
           - "**/.DS_Store"
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.clipflow.app
+        PRODUCT_BUNDLE_IDENTIFIER: com.clipflow.v12
         PRODUCT_NAME: ClipFlow
         SWIFT_VERSION: "5.9"
         MACOSX_DEPLOYMENT_TARGET: "13.0"
@@ -37,6 +29,3 @@ targets:
         LD_RUNPATH_SEARCH_PATHS: "$(inherited) @executable_path/../Frameworks"
         ENABLE_HARDENED_RUNTIME: NO
         CODE_SIGNING_ALLOWED: NO
-    dependencies:
-      - package: SQLite
-      - package: HotKey

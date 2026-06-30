@@ -13,12 +13,10 @@
 		2B4AA6F838897B0C05276C9D /* DetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CB6B72AE4C624D7F24462E6 /* DetailView.swift */; };
 		2B51F986AA789D1BC158330F /* ShortcutMapping.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4284AA78014E3B52F5D651C8 /* ShortcutMapping.swift */; };
 		323859D20491656599720734 /* HotkeyService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18125A9ACD14428B9E118FBF /* HotkeyService.swift */; };
-		6F45C76367DCDF0B874FD6E4 /* HotKey in Frameworks */ = {isa = PBXBuildFile; productRef = 644EFDA84D8935AD6FB4E18E /* HotKey */; };
 		7170C88635C1DEEF4B2CD435 /* ClipboardItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5A014BE46B4CBFEBDCE946D /* ClipboardItem.swift */; };
 		9DF31941F72F061E62282A85 /* ClipboardItemRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = F998B44CD9485B6EBAEE3D96 /* ClipboardItemRow.swift */; };
 		A6286CE108F75CD2D00BF417 /* DatabaseService.swift in Sources */ = {isa = PBXBuildFile; fileRef = F22B54D4BFF0371243E92FAD /* DatabaseService.swift */; };
 		A676EEDD45AFBD34937484B4 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41614BFF87B3A007B5C8CD1E /* AppDelegate.swift */; };
-		D02B3F67AB115455AE2F6B8C /* SQLite in Frameworks */ = {isa = PBXBuildFile; productRef = 3124C08BF2539527DB202842 /* SQLite */; };
 		D173B62134B0C244E591043A /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = CDFB76DD7564B5DCD9A3A092 /* Assets.xcassets */; };
 		D18C1B528EFD0690A61C21BE /* ClipboardListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5DCEED20375C80E81B4FC0E3 /* ClipboardListView.swift */; };
 		E137678672D674A45DFB2B3C /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A254CC88A9D44F623A9BF4DE /* ContentView.swift */; };
@@ -45,18 +43,6 @@
 		F998B44CD9485B6EBAEE3D96 /* ClipboardItemRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardItemRow.swift; sourceTree = "<group>"; };
 		FC0AFB3BA0D1715C1C02A897 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 /* End PBXFileReference section */
-
-/* Begin PBXFrameworksBuildPhase section */
-		DF153E66409AA8A4071F571C /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				D02B3F67AB115455AE2F6B8C /* SQLite in Frameworks */,
-				6F45C76367DCDF0B874FD6E4 /* HotKey in Frameworks */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-/* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
 		0D7ADC92A8C49CC6E823028B /* Models */ = {
@@ -155,7 +141,6 @@
 			buildPhases = (
 				89D59757354E9A91D9EF169A /* Sources */,
 				1D28C11011A08A58D251FEF5 /* Resources */,
-				DF153E66409AA8A4071F571C /* Frameworks */,
 			);
 			buildRules = (
 			);
@@ -163,8 +148,6 @@
 			);
 			name = ClipFlow;
 			packageProductDependencies = (
-				3124C08BF2539527DB202842 /* SQLite */,
-				644EFDA84D8935AD6FB4E18E /* HotKey */,
 			);
 			productName = ClipFlow;
 			productReference = D5EB1FAFD466C4B3D85F8658 /* ClipFlow.app */;
@@ -194,10 +177,6 @@
 			);
 			mainGroup = 9D713B1513BAC646044B94A4;
 			minimizedProjectReferenceProxies = 1;
-			packageReferences = (
-				B6A73E1CB5D9514CDC123D8F /* XCRemoteSwiftPackageReference "HotKey" */,
-				2B47904854A68ECBB8E993B8 /* XCRemoteSwiftPackageReference "SQLite.swift" */,
-			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 55617B918B8FE10A56696E32 /* Products */;
 			projectDirPath = "";
@@ -226,7 +205,7 @@
 			files = (
 				0A81066A2B7C455924553BEB /* AIGeneratingView.swift in Sources */,
 				A676EEDD45AFBD34937484B4 /* AppDelegate.swift in Sources */,
-					7170C88635C1DEEF4B2CD435 /* ClipboardItem.swift in Sources */,
+				7170C88635C1DEEF4B2CD435 /* ClipboardItem.swift in Sources */,
 				9DF31941F72F061E62282A85 /* ClipboardItemRow.swift in Sources */,
 				D18C1B528EFD0690A61C21BE /* ClipboardListView.swift in Sources */,
 				05A330A8A597D7FC34496A8E /* ClipboardMonitor.swift in Sources */,
@@ -257,7 +236,7 @@
 				INFOPLIST_FILE = ClipFlow/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.clipflow.app;
+				PRODUCT_BUNDLE_IDENTIFIER = com.clipflow.v12;
 				PRODUCT_NAME = ClipFlow;
 				SDKROOT = macosx;
 				SWIFT_VERSION = 5.9;
@@ -340,7 +319,7 @@
 				INFOPLIST_FILE = ClipFlow/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.clipflow.app;
+				PRODUCT_BUNDLE_IDENTIFIER = com.clipflow.v12;
 				PRODUCT_NAME = ClipFlow;
 				SDKROOT = macosx;
 				SWIFT_VERSION = 5.9;
@@ -425,38 +404,6 @@
 			defaultConfigurationName = Debug;
 		};
 /* End XCConfigurationList section */
-
-/* Begin XCRemoteSwiftPackageReference section */
-		2B47904854A68ECBB8E993B8 /* XCRemoteSwiftPackageReference "SQLite.swift" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/stephencelis/SQLite.swift";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 0.15.0;
-			};
-		};
-		B6A73E1CB5D9514CDC123D8F /* XCRemoteSwiftPackageReference "HotKey" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/soffes/HotKey";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 0.2.0;
-			};
-		};
-/* End XCRemoteSwiftPackageReference section */
-
-/* Begin XCSwiftPackageProductDependency section */
-		3124C08BF2539527DB202842 /* SQLite */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 2B47904854A68ECBB8E993B8 /* XCRemoteSwiftPackageReference "SQLite.swift" */;
-			productName = SQLite;
-		};
-		644EFDA84D8935AD6FB4E18E /* HotKey */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = B6A73E1CB5D9514CDC123D8F /* XCRemoteSwiftPackageReference "HotKey" */;
-			productName = HotKey;
-		};
-/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = B0DC5489CC3F0A171BCBEE6D /* Project object */;
 }

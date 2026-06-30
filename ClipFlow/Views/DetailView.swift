@@ -4,7 +4,8 @@ struct DetailView: View {
     let item: ClipboardItem?
     @ObservedObject var ollamaService: OllamaService
     let onUpdateSummary: (String?) -> Void
-    let onAICategorize: (String) -> Void
+    let onAICategorize: (String?) -> Void
+    let onDelete: () -> Void
 
     @State private var summary: String?
     @State private var isGenerating = false
@@ -33,6 +34,13 @@ struct DetailView: View {
                 actionButtons(for: item)
             }
             .padding(16)
+            .onAppear {
+                summary = item.aiSummary
+            }
+            .onChange(of: item.id) { _ in
+                summary = item.aiSummary
+                copied = false
+            }
         } else {
             emptyState
         }
@@ -120,7 +128,7 @@ struct DetailView: View {
                         .font(.system(size: 12))
                         .foregroundColor(.green)
                     Spacer()
-                    Button(action: { onAICategorize("") }) {
+                    Button(action: { onAICategorize(nil) }) {
                         Image(systemName: "xmark.circle.fill")
                             .font(.system(size: 12))
                             .foregroundColor(.secondary)
@@ -140,7 +148,10 @@ struct DetailView: View {
             summary: $summary,
             isGenerating: isGenerating,
             onGenerate: generateSummary,
-            onClear: { summary = nil }
+            onClear: {
+                summary = nil
+                onUpdateSummary(nil)
+            }
         )
     }
 
@@ -153,7 +164,7 @@ struct DetailView: View {
             .buttonStyle(.borderedProminent)
             .disabled(copied)
 
-            Button(action: { onUpdateSummary(summary) }) {
+            Button(action: onDelete) {
                 Label("删除", systemImage: "trash")
                     .frame(maxWidth: .infinity)
             }
@@ -182,6 +193,7 @@ struct DetailView: View {
             if let result = await ollamaService.summarize(item.content) {
                 await MainActor.run {
                     summary = result
+                    onUpdateSummary(result)
                     isGenerating = false
                 }
             } else {

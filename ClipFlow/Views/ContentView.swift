@@ -95,6 +95,7 @@ struct ContentView: View {
                 ClipboardListView(
                     clipboardMonitor: clipboardMonitor,
                     selectedItem: $clipboardMonitor.selectedItem,
+                    selectedCategoryLabel: selectedCategoryLabel,
                     filteredItems: filteredItems
                 )
                 .frame(minWidth: 220, maxWidth: .infinity)
@@ -106,12 +107,17 @@ struct ContentView: View {
                     ollamaService: ollamaService,
                     onUpdateSummary: { summary in
                         if let item = clipboardMonitor.selectedItem {
-                            clipboardMonitor.updateAISummary(for: item, summary: summary ?? "")
+                            clipboardMonitor.updateAISummary(for: item, summary: summary)
                         }
                     },
                     onAICategorize: { result in
                         if let item = clipboardMonitor.selectedItem {
                             clipboardMonitor.updateCustomCategory(for: item, customCat: result)
+                        }
+                    },
+                    onDelete: {
+                        if let item = clipboardMonitor.selectedItem {
+                            clipboardMonitor.deleteItem(item)
                         }
                     }
                 )

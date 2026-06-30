@@ -3,6 +3,7 @@ import SwiftUI
 struct ClipboardListView: View {
     @ObservedObject var clipboardMonitor: ClipboardMonitor
     @Binding var selectedItem: ClipboardItem?
+    var selectedCategoryLabel: String?
     var filteredItems: [ClipboardItem]
     @State private var searchText = ""
 
@@ -24,6 +25,9 @@ struct ClipboardListView: View {
             } else {
                 listContent
             }
+        }
+        .onChange(of: selectedCategoryLabel) { _ in
+            searchText = ""
         }
     }
 
@@ -54,15 +58,21 @@ struct ClipboardListView: View {
             Image(systemName: "doc.on.clipboard")
                 .font(.system(size: 48))
                 .foregroundColor(.secondary.opacity(0.5))
-            Text(selectedCategoryLabel.isEmpty ? "暂无剪切板记录" : "「\(selectedCategoryLabel)」分类为空")
+            Text(emptyStateText)
                 .font(.system(size: 14))
                 .foregroundColor(.secondary)
             Spacer()
         }
     }
 
-    private var selectedCategoryLabel: String {
-        ""
+    private var emptyStateText: String {
+        if !searchText.isEmpty {
+            return "没有匹配的搜索结果"
+        }
+        if let selectedCategoryLabel {
+            return "「\(selectedCategoryLabel)」分类为空"
+        }
+        return "暂无剪切板记录"
     }
 
     private var listContent: some View {
@@ -75,6 +85,8 @@ struct ClipboardListView: View {
                             isSelected: selectedItem?.id == item.id,
                             onSelect: {
                                 selectedItem = item
+                            },
+                            onCopy: {
                                 clipboardMonitor.selectItem(item)
                             },
                             onToggleFavorite: {

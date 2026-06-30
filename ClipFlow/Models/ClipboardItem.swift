@@ -101,7 +101,10 @@ struct ClipboardItem: Identifiable, Codable, Equatable {
     var aiSummary: String?
 
     var displayCategory: String {
-        customCategory ?? category.label
+        if let customCategory, !customCategory.isEmpty {
+            return customCategory
+        }
+        return category.label
     }
 
     enum ContentType: String, Codable {
@@ -172,21 +175,37 @@ extension ClipboardItem {
         let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return .other }
 
-        let urlRegex = try? NSRegularExpression(pattern: #"^https?://|^www\.|^[a-zA-Z0-9.-]+\.(com|cn|org|net|io|dev|app|co)"#, options: [])
-        let emailRegex = try? NSRegularExpression(pattern: #"^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}"#, options: [])
-        let codeRegex = try? NSRegularExpression(pattern: #"[{}();=<>]|\b(function|def|class|import|var|let|const|if|else|for|while|return|async|await)\b"#, options: [])
-
-        if let r = urlRegex, r.firstMatch(in: trimmed, range: NSRange(trimmed.startIndex..., in: trimmed)) != nil {
-            return .url
+        let range = NSRange(trimmed.startIndex..., in: trimmed)
+        func matches(_ pattern: String) -> Bool {
+            guard let regex = try? NSRegularExpression(pattern: pattern, options: [.caseInsensitive]) else { return false }
+            return regex.firstMatch(in: trimmed, range: range) != nil
         }
-        if let r = emailRegex, r.firstMatch(in: trimmed, range: NSRange(trimmed.startIndex..., in: trimmed)) != nil {
+
+        if matches(#"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b"#) {
             return .email
         }
-        if let r = codeRegex, r.firstMatch(in: trimmed, range: NSRange(trimmed.startIndex..., in: trimmed)) != nil {
+        if matches(#"(https?://|www\.)[^\s]+|\blocalhost(:\d+)?(/[^\s]*)?\b|\b\d{1,3}(\.\d{1,3}){3}(:\d+|/)[^\s]*|\b[a-z0-9][a-z0-9.-]*\.(com|cn|org|net|io|dev|app|co|uk|edu|gov|me|ai|xyz|info|biz|top|shop|site|online|tech)(:\d+)?(/[^\s]*)?\b"#) {
+            return .url
+        }
+
+        let codePatterns = [
+            #"^(npm|yarn|pnpm|git|brew|pip3?|python3?|node|curl|ssh|sudo|docker|kubectl|cd|ls|cat|grep|rg)\b"#,
+            #"\b(select|insert|update|delete|create|drop|alter)\b.*\b(from|where|table|into|set|values)\b"#,
+            #"\b(function|func|def|class|import|var|let|const|if|else|for|while|return|async|await)\b"#,
+            #"[{}]"#,
+            #"^\[[^\]]*(,|:)[^\]]*\]$"#,
+            #"[A-Za-z_][A-Za-z0-9_]*\([^)]*\)"#,
+            #"[A-Za-z_][A-Za-z0-9_]*\s*(==|!=|<=|>=|=>|=)"#
+        ]
+        if codePatterns.contains(where: matches) {
             return .code
         }
 
-        if let _ = Double(trimmed) {
+        let normalizedNumber = trimmed.replacingOccurrences(of: ",", with: "")
+        if Double(normalizedNumber) != nil ||
+            matches(#"^\+?\d[\d\s\-()]{6,}\d$"#) ||
+            matches(#"^\d{1,3}(\.\d{1,3}){3}$"#) ||
+            matches(#"^\d{4}[-/年]\d{1,2}[-/月]\d{1,2}([日\sT]+\d{1,2}:\d{2}(:\d{2})?)?$"#) {
             return .number
         }
 

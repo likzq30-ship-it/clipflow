@@ -4,6 +4,7 @@ struct ClipboardItemRow: View {
     let item: ClipboardItem
     let isSelected: Bool
     let onSelect: () -> Void
+    let onCopy: () -> Void
     let onToggleFavorite: () -> Void
     let onDelete: () -> Void
 
@@ -78,7 +79,7 @@ struct ClipboardItemRow: View {
             onSelect()
         }
         .onTapGesture(count: 2) {
-            onSelect()
+            onCopy()
         }
     }
 

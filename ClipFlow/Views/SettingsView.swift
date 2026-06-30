@@ -113,6 +113,8 @@ struct SettingsView: View {
     @State private var recordedModifiers: UInt32 = 0
     @State private var recordedKeyCode: UInt32 = 0
     @State private var recordingDisplay: String = ""
+    @State private var hasRecordedKey = false
+    @State private var recordingMonitor: Any?
 
     private var shortcutTab: some View {
         VStack(alignment: .leading, spacing: 20) {
@@ -173,17 +175,22 @@ struct SettingsView: View {
 
             Spacer()
         }
+        .onDisappear {
+            stopRecording()
+        }
     }
 
     private func startRecordingUI() {
         recordedModifiers = 0
         recordedKeyCode = 0
+        hasRecordedKey = false
         recordingDisplay = ""
         isRecording = true
     }
 
     private func startRecording() {
-        NSEvent.addLocalMonitorForEvents(matching: [.keyDown, .flagsChanged]) { event in
+        guard recordingMonitor == nil else { return }
+        recordingMonitor = NSEvent.addLocalMonitorForEvents(matching: [.keyDown, .flagsChanged]) { event in
             guard isRecording else { return event }
 
             if event.type == .flagsChanged {
@@ -199,6 +206,7 @@ struct SettingsView: View {
 
             if event.type == .keyDown {
                 recordedKeyCode = UInt32(event.keyCode)
+                hasRecordedKey = true
                 updateRecordingDisplay()
                 return nil
             }
@@ -208,21 +216,39 @@ struct SettingsView: View {
     }
 
     private func updateRecordingDisplay() {
+        guard hasRecordedKey else {
+            recordingDisplay = modifierDisplay
+            return
+        }
         let temp = ShortcutMapping(keyCode: recordedKeyCode, modifiers: recordedModifiers)
         recordingDisplay = temp.displayString
     }
 
+    private var modifierDisplay: String {
+        var parts: [String] = []
+        if recordedModifiers & UInt32(controlKey) != 0 { parts.append("⌃") }
+        if recordedModifiers & UInt32(optionKey) != 0 { parts.append("⌥") }
+        if recordedModifiers & UInt32(shiftKey) != 0 { parts.append("⇧") }
+        if recordedModifiers & UInt32(cmdKey) != 0 { parts.append("⌘") }
+        return parts.joined()
+    }
+
     private func saveRecording() {
-        guard recordedKeyCode > 0, recordedModifiers > 0 else { return }
+        guard hasRecordedKey, recordedModifiers > 0 else { return }
         let shortcut = ShortcutMapping(keyCode: recordedKeyCode, modifiers: recordedModifiers)
         hotkeyService.updateShortcut(shortcut)
         stopRecording()
     }
 
     private func stopRecording() {
+        if let recordingMonitor = recordingMonitor {
+            NSEvent.removeMonitor(recordingMonitor)
+            self.recordingMonitor = nil
+        }
         isRecording = false
         recordedModifiers = 0
         recordedKeyCode = 0
+        hasRecordedKey = false
         recordingDisplay = ""
     }
 

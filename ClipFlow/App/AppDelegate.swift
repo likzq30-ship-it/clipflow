@@ -7,6 +7,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     var statusItem: NSStatusItem?
     var popover: NSPopover?
     var settingsWindow: NSWindow?
+    var settingsWindowDelegate: WindowDelegate?
     var clipboardMonitor: ClipboardMonitor?
     var ollamaService: OllamaService?
 
@@ -164,9 +165,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             )
         )
         window.isReleasedWhenClosed = false
-        window.delegate = WindowDelegate(onClose: { [weak self] in
+        settingsWindowDelegate = WindowDelegate(onClose: { [weak self] in
             self?.settingsWindow = nil
+            self?.settingsWindowDelegate = nil
         })
+        window.delegate = settingsWindowDelegate
 
         settingsWindow = window
         window.makeKeyAndOrderFront(nil)
