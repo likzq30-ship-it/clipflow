@@ -4,6 +4,7 @@ struct AIGeneratingView: View {
     @Binding var summary: String?
     let isGenerating: Bool
     let onGenerate: () -> Void
+    let onRewrite: () -> Void
     let onClear: () -> Void
 
     var body: some View {
@@ -11,18 +12,27 @@ struct AIGeneratingView: View {
             HStack {
                 Image(systemName: "sparkles")
                     .foregroundColor(.purple)
-                Text("AI 智能汇总")
+                Text("AI 内容处理")
                     .font(.system(size: 14, weight: .semibold))
 
                 Spacer()
 
                 if summary == nil && !isGenerating {
-                    Button(action: onGenerate) {
-                        Label("生成汇总", systemImage: "wand.and.stars")
-                            .font(.system(size: 12))
+                    HStack(spacing: 8) {
+                        Button(action: onGenerate) {
+                            Label("汇总", systemImage: "wand.and.stars")
+                                .font(.system(size: 12))
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .controlSize(.small)
+
+                        Button(action: onRewrite) {
+                            Label("拓写", systemImage: "text.quote")
+                                .font(.system(size: 12))
+                        }
+                        .buttonStyle(.bordered)
+                        .controlSize(.small)
                     }
-                    .buttonStyle(.borderedProminent)
-                    .controlSize(.small)
                 }
 
                 if isGenerating {

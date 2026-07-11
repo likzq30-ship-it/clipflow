@@ -6,6 +6,17 @@ class OllamaService: ObservableObject {
     @Published var isAvailable: Bool = false
     @Published var isGenerating: Bool = false
 
+    @Published var isEnabled: Bool {
+        didSet {
+            UserDefaults.standard.set(isEnabled, forKey: "ai_integration_enabled")
+            if isEnabled {
+                checkAvailability()
+            } else {
+                isAvailable = false
+                isGenerating = false
+            }
+        }
+    }
     @Published var baseURL: String {
         didSet { UserDefaults.standard.set(baseURL, forKey: "ollama_base_url") }
     }
@@ -14,22 +25,36 @@ class OllamaService: ObservableObject {
     }
 
     private init() {
+        self.isEnabled = UserDefaults.standard.bool(forKey: "ai_integration_enabled")
         self.baseURL = UserDefaults.standard.string(forKey: "ollama_base_url") ?? "http://localhost:11434"
         self.model = UserDefaults.standard.string(forKey: "ollama_model") ?? "qwen2.5:0.5b"
-        checkAvailability()
+        if isEnabled { checkAvailability() }
     }
 
     func checkAvailability() {
-        guard let url = URL(string: "\(baseURL)/api/tags") else { return }
+        guard isEnabled else {
+            isAvailable = false
+            return
+        }
+        guard let url = URL(string: "\(baseURL)/api/tags") else {
+            isAvailable = false
+            return
+        }
 
         URLSession.shared.dataTask(with: url) { [weak self] data, response, error in
             DispatchQueue.main.async {
-                self?.isAvailable = error == nil && (response as? HTTPURLResponse)?.statusCode == 200
+                guard let self = self else { return }
+                guard self.isEnabled else {
+                    self.isAvailable = false
+                    return
+                }
+                self.isAvailable = error == nil && (response as? HTTPURLResponse)?.statusCode == 200
             }
         }.resume()
     }
 
     private func ensureAvailable() async -> Bool {
+        guard isEnabled else { return false }
         if isAvailable { return true }
 
         // Try launching ollama serve
@@ -104,8 +129,24 @@ class OllamaService: ObservableObject {
         return nil
     }
 
+    func rewrite(_ text: String) async -> String? {
+        guard isEnabled, !isGenerating else { return nil }
+        if let result = TinyLocalAIService.shared.rewrite(text) {
+            logUsage(type: "rewrite", content: text, result: result, modelName: TinyLocalAIService.modelName)
+            return result
+        }
+        return nil
+    }
+
     func categorizeContent(_ text: String, customCategories: [CustomCategory]) async -> String? {
-        guard await ensureAvailable(), !isGenerating, !customCategories.isEmpty else { return nil }
+        guard isEnabled, !isGenerating, !customCategories.isEmpty else { return nil }
+
+        if let result = TinyLocalAIService.shared.categorizeContent(text, customCategories: customCategories) {
+            logUsage(type: "categorize", content: text, result: result, modelName: TinyLocalAIService.modelName)
+            return result
+        }
+
+        guard await ensureAvailable(), !isGenerating else { return nil }
 
         DispatchQueue.main.async { self.isGenerating = true }
         defer { DispatchQueue.main.async { self.isGenerating = false } }
@@ -156,13 +197,13 @@ class OllamaService: ObservableObject {
         return nil
     }
 
-    private func logUsage(type: String, content: String, result: String) {
+    private func logUsage(type: String, content: String, result: String, modelName: String? = nil) {
         let record = APIUsageRecord(
             timestamp: Date(),
             type: type,
-            contentPreview: String(content.prefix(100)),
+            contentPreview: "原文未保存",
             result: result,
-            model: model
+            model: modelName ?? model
         )
         APIUsageStore.shared.add(record)
     }

@@ -256,10 +256,10 @@ struct SettingsView: View {
 
     private var categoryTab: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("自定义分类 (AI 驱动)")
+            Text("自定义分类 (可选 AI)")
                 .font(.system(size: 13, weight: .medium))
 
-            Text("创建自定义分类并编写匹配提示词，AI 会根据提示词自动归类剪切板内容。")
+            Text("启用 AI 集成后，可按这些提示词归类剪切板内容。")
                 .font(.system(size: 11))
                 .foregroundColor(.secondary)
 
@@ -333,8 +333,15 @@ struct SettingsView: View {
 
     private var aiTab: some View {
         VStack(alignment: .leading, spacing: 16) {
+            settingRow(title: "内置 AI 集成", description: ollamaService.isEnabled ? "内置 tiny AI 可用，Ollama 可增强" : "关闭时不检测、不调用模型") {
+                Toggle("", isOn: $ollamaService.isEnabled)
+                    .labelsHidden()
+            }
+
+            Divider()
+
             VStack(alignment: .leading, spacing: 6) {
-                Text("API 地址")
+                Text("可选 Ollama 地址")
                     .font(.system(size: 12, weight: .medium))
                 HStack {
                     TextField("http://localhost:11434", text: $apiURL)
@@ -345,6 +352,7 @@ struct SettingsView: View {
                     }
                     .buttonStyle(.borderedProminent).controlSize(.small)
                 }
+                .disabled(!ollamaService.isEnabled)
             }
 
             VStack(alignment: .leading, spacing: 6) {
@@ -358,17 +366,24 @@ struct SettingsView: View {
                     }
                     .buttonStyle(.borderedProminent).controlSize(.small)
                 }
+                .disabled(!ollamaService.isEnabled)
             }
 
             Divider()
 
-            settingRow(title: "连接状态", description: ollamaService.isAvailable ? "✓ 已连接" : "✗ 未连接") {
+            settingRow(title: "连接状态", description: aiStatusText) {
                 Button("检测") { ollamaService.checkAvailability() }
                     .buttonStyle(.bordered)
+                    .disabled(!ollamaService.isEnabled)
             }
 
             Spacer()
         }
+    }
+
+    private var aiStatusText: String {
+        if !ollamaService.isEnabled { return "未启用" }
+        return ollamaService.isAvailable ? "内置可用，Ollama 已连接" : "内置可用，Ollama 未连接"
     }
 
     // MARK: - API 历史记录 Tab
@@ -402,16 +417,16 @@ struct SettingsView: View {
                     VStack(spacing: 6) {
                         ForEach(apiUsageStore.records) { record in
                             HStack(alignment: .top, spacing: 10) {
-                                Image(systemName: record.type == "summarize" ? "sparkles" : "tag")
+                                Image(systemName: usageIcon(for: record.type))
                                     .font(.system(size: 10))
-                                    .foregroundColor(record.type == "summarize" ? .purple : .green)
+                                    .foregroundColor(usageColor(for: record.type))
                                     .padding(.top, 2)
 
                                 VStack(alignment: .leading, spacing: 3) {
                                     HStack {
-                                        Text(record.type == "summarize" ? "汇总" : "分类")
+                                        Text(usageLabel(for: record.type))
                                             .font(.system(size: 10, weight: .semibold))
-                                            .foregroundColor(record.type == "summarize" ? .purple : .green)
+                                            .foregroundColor(usageColor(for: record.type))
                                         Text("· \(record.timestamp, style: .time)")
                                             .font(.system(size: 9))
                                             .foregroundColor(.secondary)
@@ -462,6 +477,30 @@ struct SettingsView: View {
             }
             Spacer()
             content()
+        }
+    }
+
+    private func usageLabel(for type: String) -> String {
+        switch type {
+        case "summarize": return "汇总"
+        case "rewrite": return "拓写"
+        default: return "分类"
+        }
+    }
+
+    private func usageIcon(for type: String) -> String {
+        switch type {
+        case "summarize": return "sparkles"
+        case "rewrite": return "text.quote"
+        default: return "tag"
+        }
+    }
+
+    private func usageColor(for type: String) -> Color {
+        switch type {
+        case "summarize": return .purple
+        case "rewrite": return .blue
+        default: return .green
         }
     }
 }

@@ -21,13 +21,12 @@ struct DetailView: View {
 
                 contentArea(for: item)
 
-                Divider()
-
-                aiCategorizeArea(for: item)
-
-                Divider()
-
-                aiSummaryArea
+                if ollamaService.isEnabled {
+                    Divider()
+                    aiCategorizeArea(for: item)
+                    Divider()
+                    aiSummaryArea
+                }
 
                 Spacer()
 
@@ -148,6 +147,7 @@ struct DetailView: View {
             summary: $summary,
             isGenerating: isGenerating,
             onGenerate: generateSummary,
+            onRewrite: rewriteContent,
             onClear: {
                 summary = nil
                 onUpdateSummary(nil)
@@ -187,7 +187,7 @@ struct DetailView: View {
     }
 
     private func generateSummary() {
-        guard let item = item else { return }
+        guard ollamaService.isEnabled, let item = item else { return }
         isGenerating = true
         Task {
             if let result = await ollamaService.summarize(item.content) {
@@ -202,7 +202,24 @@ struct DetailView: View {
         }
     }
 
+    private func rewriteContent() {
+        guard ollamaService.isEnabled, let item = item else { return }
+        isGenerating = true
+        Task {
+            if let result = await ollamaService.rewrite(item.content) {
+                await MainActor.run {
+                    summary = result
+                    onUpdateSummary(result)
+                    isGenerating = false
+                }
+            } else {
+                await MainActor.run { isGenerating = false }
+            }
+        }
+    }
+
     private func categorize(_ item: ClipboardItem) {
+        guard ollamaService.isEnabled else { return }
         let cats = CustomCategoryStore.shared.categories
         guard !cats.isEmpty else { return }
         isCategorizing = true

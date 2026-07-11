@@ -10,6 +10,7 @@
 		05A330A8A597D7FC34496A8E /* ClipboardMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21D86A4AC06CCA42936E775B /* ClipboardMonitor.swift */; };
 		0A81066A2B7C455924553BEB /* AIGeneratingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1DC5A392AFC1E96BB5C42711 /* AIGeneratingView.swift */; };
 		0AF8B72BF44B0315E7A65BF7 /* OllamaService.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5549C2FFE9972654024E31E /* OllamaService.swift */; };
+		14B9F2F2A1C34E85A7B50101 /* TinyLocalAIService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14B9F2F2A1C34E85A7B50100 /* TinyLocalAIService.swift */; };
 		2B4AA6F838897B0C05276C9D /* DetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CB6B72AE4C624D7F24462E6 /* DetailView.swift */; };
 		2B51F986AA789D1BC158330F /* ShortcutMapping.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4284AA78014E3B52F5D651C8 /* ShortcutMapping.swift */; };
 		323859D20491656599720734 /* HotkeyService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18125A9ACD14428B9E118FBF /* HotkeyService.swift */; };
@@ -36,6 +37,7 @@
 		A254CC88A9D44F623A9BF4DE /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		CDFB76DD7564B5DCD9A3A092 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		D5549C2FFE9972654024E31E /* OllamaService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OllamaService.swift; sourceTree = "<group>"; };
+		14B9F2F2A1C34E85A7B50100 /* TinyLocalAIService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TinyLocalAIService.swift; sourceTree = "<group>"; };
 		D5A014BE46B4CBFEBDCE946D /* ClipboardItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardItem.swift; sourceTree = "<group>"; };
 		D5EB1FAFD466C4B3D85F8658 /* ClipFlow.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ClipFlow.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		F22B54D4BFF0371243E92FAD /* DatabaseService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DatabaseService.swift; sourceTree = "<group>"; };
@@ -86,6 +88,7 @@
 				F22B54D4BFF0371243E92FAD /* DatabaseService.swift */,
 				18125A9ACD14428B9E118FBF /* HotkeyService.swift */,
 				D5549C2FFE9972654024E31E /* OllamaService.swift */,
+				14B9F2F2A1C34E85A7B50100 /* TinyLocalAIService.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -216,6 +219,7 @@
 				0AF8B72BF44B0315E7A65BF7 /* OllamaService.swift in Sources */,
 				FE39196888CFB96478E6B9C2 /* SettingsView.swift in Sources */,
 				2B51F986AA789D1BC158330F /* ShortcutMapping.swift in Sources */,
+				14B9F2F2A1C34E85A7B50101 /* TinyLocalAIService.swift in Sources */,
 				EED6E3D82ABE9FA2AC7BBD1D /* main.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

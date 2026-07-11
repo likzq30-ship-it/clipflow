@@ -3,7 +3,7 @@ import Foundation
 struct APIUsageRecord: Identifiable, Codable, Equatable {
     var id: UUID = UUID()
     var timestamp: Date
-    var type: String  // "summarize" | "categorize"
+    var type: String  // "summarize" | "categorize" | "rewrite"
     var contentPreview: String
     var result: String
     var model: String
