@@ -1,0 +1,18 @@
+enum AppErrorCode: String, Codable, Equatable, Sendable {
+    case databaseOpen = "database.open"
+    case databaseWrite = "database.write"
+    case databaseCopyMetadata = "database.copyMetadata"
+    case databaseReadOnly = "database.readOnly"
+    case migrationFailed = "migration.failed"
+    case migrationBackupDelete = "migration.backupDelete"
+    case clipboardRead = "clipboard.read"
+    case clipboardWrite = "clipboard.write"
+    case hotkeyRegistration = "hotkey.registration"
+    case privacyExcluded = "privacy.excluded"
+    case privacySize = "privacy.size"
+    case privacySensitive = "privacy.sensitive"
+    case aiEndpoint = "ai.endpoint"
+    case aiConsent = "ai.consent"
+    case aiRequest = "ai.request"
+    case releaseConfiguration = "release.configuration"
+}
