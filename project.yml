@@ -18,6 +18,8 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.clipflow.v12
         PRODUCT_NAME: ClipFlow
+        MARKETING_VERSION: 2.0.0
+        CURRENT_PROJECT_VERSION: 200
         SWIFT_VERSION: "5.9"
         MACOSX_DEPLOYMENT_TARGET: "13.0"
         CODE_SIGN_IDENTITY: "-"
@@ -27,5 +29,29 @@ targets:
         COMBINE_HIDPI_IMAGES: YES
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         LD_RUNPATH_SEARCH_PATHS: "$(inherited) @executable_path/../Frameworks"
-        ENABLE_HARDENED_RUNTIME: NO
+        ENABLE_HARDENED_RUNTIME: YES
+        CODE_SIGNING_ALLOWED: YES
+
+  ClipFlowTests:
+    type: bundle.unit-test
+    platform: macOS
+    sources:
+      - path: ClipFlowTests
+    dependencies:
+      - target: ClipFlow
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.clipflow.v12.tests
+        GENERATE_INFOPLIST_FILE: YES
         CODE_SIGNING_ALLOWED: NO
+
+schemes:
+  ClipFlow:
+    build:
+      targets:
+        ClipFlow: all
+        ClipFlowTests: [test]
+    test:
+      gatherCoverageData: true
+      targets:
+        - name: ClipFlowTests

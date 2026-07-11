@@ -10,11 +10,12 @@
 		05A330A8A597D7FC34496A8E /* ClipboardMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21D86A4AC06CCA42936E775B /* ClipboardMonitor.swift */; };
 		0A81066A2B7C455924553BEB /* AIGeneratingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1DC5A392AFC1E96BB5C42711 /* AIGeneratingView.swift */; };
 		0AF8B72BF44B0315E7A65BF7 /* OllamaService.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5549C2FFE9972654024E31E /* OllamaService.swift */; };
-		14B9F2F2A1C34E85A7B50101 /* TinyLocalAIService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14B9F2F2A1C34E85A7B50100 /* TinyLocalAIService.swift */; };
 		2B4AA6F838897B0C05276C9D /* DetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CB6B72AE4C624D7F24462E6 /* DetailView.swift */; };
 		2B51F986AA789D1BC158330F /* ShortcutMapping.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4284AA78014E3B52F5D651C8 /* ShortcutMapping.swift */; };
 		323859D20491656599720734 /* HotkeyService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18125A9ACD14428B9E118FBF /* HotkeyService.swift */; };
+		43EDAE06C7149543D9090531 /* SmokeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E8CF7D9DC042FA208ED2145F /* SmokeTests.swift */; };
 		7170C88635C1DEEF4B2CD435 /* ClipboardItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5A014BE46B4CBFEBDCE946D /* ClipboardItem.swift */; };
+		9A4127843D01766769664FB7 /* TinyLocalAIService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A314DC26029E03921E31888F /* TinyLocalAIService.swift */; };
 		9DF31941F72F061E62282A85 /* ClipboardItemRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = F998B44CD9485B6EBAEE3D96 /* ClipboardItemRow.swift */; };
 		A6286CE108F75CD2D00BF417 /* DatabaseService.swift in Sources */ = {isa = PBXBuildFile; fileRef = F22B54D4BFF0371243E92FAD /* DatabaseService.swift */; };
 		A676EEDD45AFBD34937484B4 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41614BFF87B3A007B5C8CD1E /* AppDelegate.swift */; };
@@ -25,21 +26,33 @@
 		FE39196888CFB96478E6B9C2 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64416B67F6B53D1EE205CF9F /* SettingsView.swift */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		B7194B8DBA06CD2AE45EA335 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = B0DC5489CC3F0A171BCBEE6D /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 90DA79FDAD89E47AF68E92BE;
+			remoteInfo = ClipFlow;
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXFileReference section */
 		18125A9ACD14428B9E118FBF /* HotkeyService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HotkeyService.swift; sourceTree = "<group>"; };
 		1DC5A392AFC1E96BB5C42711 /* AIGeneratingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIGeneratingView.swift; sourceTree = "<group>"; };
 		21D86A4AC06CCA42936E775B /* ClipboardMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardMonitor.swift; sourceTree = "<group>"; };
 		41614BFF87B3A007B5C8CD1E /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		4284AA78014E3B52F5D651C8 /* ShortcutMapping.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShortcutMapping.swift; sourceTree = "<group>"; };
+		4C436CA668FC9FD8A6418401 /* ClipFlowTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ClipFlowTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		5DCEED20375C80E81B4FC0E3 /* ClipboardListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardListView.swift; sourceTree = "<group>"; };
 		64416B67F6B53D1EE205CF9F /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		7CB6B72AE4C624D7F24462E6 /* DetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetailView.swift; sourceTree = "<group>"; };
 		A254CC88A9D44F623A9BF4DE /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		A314DC26029E03921E31888F /* TinyLocalAIService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TinyLocalAIService.swift; sourceTree = "<group>"; };
 		CDFB76DD7564B5DCD9A3A092 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		D5549C2FFE9972654024E31E /* OllamaService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OllamaService.swift; sourceTree = "<group>"; };
-		14B9F2F2A1C34E85A7B50100 /* TinyLocalAIService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TinyLocalAIService.swift; sourceTree = "<group>"; };
 		D5A014BE46B4CBFEBDCE946D /* ClipboardItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardItem.swift; sourceTree = "<group>"; };
 		D5EB1FAFD466C4B3D85F8658 /* ClipFlow.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ClipFlow.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		E8CF7D9DC042FA208ED2145F /* SmokeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SmokeTests.swift; sourceTree = "<group>"; };
 		F22B54D4BFF0371243E92FAD /* DatabaseService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DatabaseService.swift; sourceTree = "<group>"; };
 		F7842A9F046EE15D928DBC9C /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
 		F998B44CD9485B6EBAEE3D96 /* ClipboardItemRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardItemRow.swift; sourceTree = "<group>"; };
@@ -77,8 +90,17 @@
 			isa = PBXGroup;
 			children = (
 				D5EB1FAFD466C4B3D85F8658 /* ClipFlow.app */,
+				4C436CA668FC9FD8A6418401 /* ClipFlowTests.xctest */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		9A9C2EF000ED12F34D390AF1 /* ClipFlowTests */ = {
+			isa = PBXGroup;
+			children = (
+				E8CF7D9DC042FA208ED2145F /* SmokeTests.swift */,
+			);
+			path = ClipFlowTests;
 			sourceTree = "<group>";
 		};
 		9BBFBB189891859E76F831CD /* Services */ = {
@@ -88,7 +110,7 @@
 				F22B54D4BFF0371243E92FAD /* DatabaseService.swift */,
 				18125A9ACD14428B9E118FBF /* HotkeyService.swift */,
 				D5549C2FFE9972654024E31E /* OllamaService.swift */,
-				14B9F2F2A1C34E85A7B50100 /* TinyLocalAIService.swift */,
+				A314DC26029E03921E31888F /* TinyLocalAIService.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -97,6 +119,7 @@
 			isa = PBXGroup;
 			children = (
 				B02CFC234050B74B3DDA859B /* ClipFlow */,
+				9A9C2EF000ED12F34D390AF1 /* ClipFlowTests */,
 				55617B918B8FE10A56696E32 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -156,6 +179,24 @@
 			productReference = D5EB1FAFD466C4B3D85F8658 /* ClipFlow.app */;
 			productType = "com.apple.product-type.application";
 		};
+		D6001DC2EC6BEF8FE2830D33 /* ClipFlowTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = F14DAB5797F940AEAB99D3BB /* Build configuration list for PBXNativeTarget "ClipFlowTests" */;
+			buildPhases = (
+				F9F4A433A91B412287FD3EEB /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				808FFDE994992E7840155AD0 /* PBXTargetDependency */,
+			);
+			name = ClipFlowTests;
+			packageProductDependencies = (
+			);
+			productName = ClipFlowTests;
+			productReference = 4C436CA668FC9FD8A6418401 /* ClipFlowTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -186,6 +227,7 @@
 			projectRoot = "";
 			targets = (
 				90DA79FDAD89E47AF68E92BE /* ClipFlow */,
+				D6001DC2EC6BEF8FE2830D33 /* ClipFlowTests */,
 			);
 		};
 /* End PBXProject section */
@@ -219,27 +261,45 @@
 				0AF8B72BF44B0315E7A65BF7 /* OllamaService.swift in Sources */,
 				FE39196888CFB96478E6B9C2 /* SettingsView.swift in Sources */,
 				2B51F986AA789D1BC158330F /* ShortcutMapping.swift in Sources */,
-				14B9F2F2A1C34E85A7B50101 /* TinyLocalAIService.swift in Sources */,
+				9A4127843D01766769664FB7 /* TinyLocalAIService.swift in Sources */,
 				EED6E3D82ABE9FA2AC7BBD1D /* main.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		F9F4A433A91B412287FD3EEB /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				43EDAE06C7149543D9090531 /* SmokeTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		808FFDE994992E7840155AD0 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 90DA79FDAD89E47AF68E92BE /* ClipFlow */;
+			targetProxy = B7194B8DBA06CD2AE45EA335 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		06A4A906990637E32573925A /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CODE_SIGNING_ALLOWED = NO;
+				CODE_SIGNING_ALLOWED = YES;
 				CODE_SIGN_IDENTITY = "-";
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 200;
 				DEVELOPMENT_TEAM = "";
-				ENABLE_HARDENED_RUNTIME = NO;
+				ENABLE_HARDENED_RUNTIME = YES;
 				INFOPLIST_FILE = ClipFlow/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				MARKETING_VERSION = 2.0.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.clipflow.v12;
 				PRODUCT_NAME = ClipFlow;
 				SDKROOT = macosx;
@@ -310,25 +370,63 @@
 			};
 			name = Debug;
 		};
+		A7591AC6372D9E205C4651BD /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGNING_ALLOWED = NO;
+				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.clipflow.v12.tests;
+				SDKROOT = macosx;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/ClipFlow.app/Contents/MacOS/ClipFlow";
+			};
+			name = Release;
+		};
 		C07FAD1014AACC9D89FF8DFD /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CODE_SIGNING_ALLOWED = NO;
+				CODE_SIGNING_ALLOWED = YES;
 				CODE_SIGN_IDENTITY = "-";
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 200;
 				DEVELOPMENT_TEAM = "";
-				ENABLE_HARDENED_RUNTIME = NO;
+				ENABLE_HARDENED_RUNTIME = YES;
 				INFOPLIST_FILE = ClipFlow/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				MARKETING_VERSION = 2.0.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.clipflow.v12;
 				PRODUCT_NAME = ClipFlow;
 				SDKROOT = macosx;
 				SWIFT_VERSION = 5.9;
 			};
 			name = Release;
+		};
+		CAEE26DA424166819508DDD6 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGNING_ALLOWED = NO;
+				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.clipflow.v12.tests;
+				SDKROOT = macosx;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/ClipFlow.app/Contents/MacOS/ClipFlow";
+			};
+			name = Debug;
 		};
 		D8084E6FD03F6177FB32D49A /* Release */ = {
 			isa = XCBuildConfiguration;
@@ -403,6 +501,15 @@
 			buildConfigurations = (
 				A557672CEC726CB751DB7483 /* Debug */,
 				D8084E6FD03F6177FB32D49A /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		F14DAB5797F940AEAB99D3BB /* Build configuration list for PBXNativeTarget "ClipFlowTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				CAEE26DA424166819508DDD6 /* Debug */,
+				A7591AC6372D9E205C4651BD /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;
