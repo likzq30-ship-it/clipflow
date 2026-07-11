@@ -90,15 +90,24 @@ class CustomCategoryStore: ObservableObject {
     }
 }
 
-struct ClipboardItem: Identifiable, Codable, Equatable {
+struct ClipboardItem: Identifiable, Codable, Equatable, Sendable {
     let id: UUID
     var content: String
     var contentType: ContentType
     var category: Category
+    var customCategoryID: UUID?
     var customCategory: String?
-    var timestamp: Date
+    var createdAt: Date
+    var lastCopiedAt: Date
+    var copyCount: Int
     var isFavorite: Bool
     var aiSummary: String?
+    var deletedAt: Date?
+
+    var timestamp: Date {
+        get { lastCopiedAt }
+        set { lastCopiedAt = newValue }
+    }
 
     var displayCategory: String {
         if let customCategory, !customCategory.isEmpty {
@@ -107,13 +116,13 @@ struct ClipboardItem: Identifiable, Codable, Equatable {
         return category.label
     }
 
-    enum ContentType: String, Codable {
+    enum ContentType: String, Codable, Sendable {
         case text
         case image
         case file
     }
 
-    enum Category: String, Codable, CaseIterable {
+    enum Category: String, Codable, CaseIterable, Sendable {
         case url
         case email
         case code
@@ -137,15 +146,32 @@ struct ClipboardItem: Identifiable, Codable, Equatable {
         }
     }
 
-    init(id: UUID = UUID(), content: String, contentType: ContentType = .text, category: Category = .other, customCategory: String? = nil, timestamp: Date = Date(), isFavorite: Bool = false, aiSummary: String? = nil) {
+    init(
+        id: UUID = UUID(),
+        content: String,
+        contentType: ContentType = .text,
+        category: Category = .other,
+        customCategoryID: UUID? = nil,
+        customCategory: String? = nil,
+        timestamp: Date = Date(),
+        createdAt: Date? = nil,
+        copyCount: Int = 1,
+        isFavorite: Bool = false,
+        aiSummary: String? = nil,
+        deletedAt: Date? = nil
+    ) {
         self.id = id
         self.content = content
         self.contentType = contentType
         self.category = category
+        self.customCategoryID = customCategoryID
         self.customCategory = customCategory
-        self.timestamp = timestamp
+        self.createdAt = createdAt ?? timestamp
+        self.lastCopiedAt = timestamp
+        self.copyCount = copyCount
         self.isFavorite = isFavorite
         self.aiSummary = aiSummary
+        self.deletedAt = deletedAt
     }
 
     static func == (lhs: ClipboardItem, rhs: ClipboardItem) -> Bool {
