@@ -32,4 +32,12 @@ actor ControllableAIService: AIServiceProtocol {
     func pendingCount() -> Int {
         continuations.count
     }
+
+    func recordedRequests() -> [AIRequest] {
+        requests
+    }
+
+    func recordedProviders() -> [AIProviderConfiguration] {
+        providers
+    }
 }

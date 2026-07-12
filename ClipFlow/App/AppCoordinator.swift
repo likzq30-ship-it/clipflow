@@ -18,8 +18,10 @@ final class AppCoordinator: NSObject, QuickPanelCoordinating {
     private var popover: NSPopover?
     private var libraryWindow: NSWindow?
     private var settingsWindow: NSWindow?
-    private var libraryDelegate: WindowRetainerDelegate?
+    private var libraryDelegate: LibraryWindowDelegate?
     private var settingsDelegate: WindowRetainerDelegate?
+    private var libraryConsentPresenter: RemoteConsentSheetPresenter?
+    private var libraryAIActionCoordinator: AIActionCoordinator?
     private var copyFeedbackTask: Task<Void, Never>?
     private var readyContinuation: CheckedContinuation<Void, Never>?
     private var readyProbeState = QuickPanelReadyProbeState()
@@ -80,6 +82,10 @@ final class AppCoordinator: NSObject, QuickPanelCoordinating {
         guard let environment else { return }
         if let selectedID {
             environment.store.setSelection(selectedID, for: .library)
+            Task { @MainActor [store = environment.store] in
+                await store.loadItem(id: selectedID)
+                store.setSelection(selectedID, for: .library)
+            }
         }
 
         let recoveryPresentation = readOnlyRecoveryPresentation(for: environment.store.repositoryStartup)
@@ -94,27 +100,47 @@ final class AppCoordinator: NSObject, QuickPanelCoordinating {
             return
         }
 
+        let consentPresenter = RemoteConsentSheetPresenter()
+        libraryConsentPresenter = consentPresenter
+        let aiActionCoordinator = AIActionCoordinator(
+            settings: environment.settings,
+            jobs: environment.aiJobCoordinator,
+            consentPresenter: consentPresenter
+        )
+        libraryAIActionCoordinator = aiActionCoordinator
+
         let window = NSWindow(
-            contentRect: NSRect(x: 0, y: 0, width: 760, height: 520),
+            contentRect: NSRect(x: 0, y: 0, width: 1040, height: 680),
             styleMask: [.titled, .closable, .miniaturizable, .resizable],
             backing: .buffered,
             defer: false
         )
-        window.title = "ClipFlow History"
+        window.title = "ClipFlow Library"
+        window.minSize = NSSize(width: 760, height: 520)
+        window.setFrameAutosaveName("ClipFlow.LibraryWindow")
         window.center()
+        consentPresenter.window = window
         window.contentViewController = NSHostingController(
-            rootView: HistoryWindowView(
+            rootView: LibraryView(
                 store: environment.store,
-                recoveryHandler: recoveryHandler,
-                selectedID: selectedID,
-                onSettings: { [weak self] in self?.openSettings() }
+                aiActions: aiActionCoordinator,
+                jobs: environment.aiJobCoordinator,
+                recoveryHandler: recoveryHandler
             )
         )
         window.isReleasedWhenClosed = false
-        libraryDelegate = WindowRetainerDelegate { [weak self] in
-            self?.libraryWindow = nil
-            self?.libraryDelegate = nil
-        }
+        libraryDelegate = LibraryWindowDelegate(
+            onPrepareClose: { [jobs = environment.aiJobCoordinator] in
+                await jobs.cancelAll()
+                jobs.clearAllTransientResults()
+            },
+            onClose: { [weak self] in
+                self?.libraryWindow = nil
+                self?.libraryDelegate = nil
+                self?.libraryConsentPresenter = nil
+                self?.libraryAIActionCoordinator = nil
+            }
+        )
         window.delegate = libraryDelegate
         libraryWindow = window
         window.makeKeyAndOrderFront(nil)
@@ -603,61 +629,7 @@ private struct StartupQuickPanelView: View {
     }
 }
 
-private struct HistoryWindowView: View {
-    @ObservedObject var store: ClipboardStore
-    let recoveryHandler: RecoveryActionHandler?
-    let selectedID: UUID?
-    let onSettings: () -> Void
-
-    var body: some View {
-        VStack(spacing: 0) {
-            HStack {
-                Text("ClipFlow History")
-                    .font(.headline)
-                Spacer()
-                Button("Settings", action: onSettings)
-            }
-            .padding()
-            Divider()
-            if let presentation = readOnlyRecoveryPresentation(for: store.repositoryStartup) {
-                ErrorBanner(
-                    presentation: presentation,
-                    isUndismissable: true,
-                    onRecoveryAction: handleRecovery
-                )
-                .accessibilityIdentifier("library.recoveryBanner")
-                .padding(.horizontal, 12)
-                .padding(.top, 12)
-            }
-            List(selection: Binding(
-                get: { store.session(for: .library).selectedItemID },
-                set: { store.setSelection($0, for: .library) }
-            )) {
-                ForEach(store.session(for: .library).items) { item in
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(item.displayContent)
-                            .lineLimit(2)
-                        Text(item.displayCategory)
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                    }
-                    .tag(item.id)
-                }
-            }
-        }
-        .onAppear {
-            if let selectedID {
-                store.setSelection(selectedID, for: .library)
-            }
-        }
-    }
-
-    func handleRecovery(_ action: RecoveryAction) async {
-        await recoveryHandler?.handle(action)
-    }
-}
-
-private func readOnlyRecoveryPresentation(for startup: RepositoryStartup) -> AppErrorPresentation? {
+func readOnlyRecoveryPresentation(for startup: RepositoryStartup) -> AppErrorPresentation? {
     guard case .readOnlyRecovery(_, let backupURL, _) = startup else { return nil }
     return AppErrorPresentation(
         code: .databaseReadOnly,
@@ -668,6 +640,35 @@ private func readOnlyRecoveryPresentation(for startup: RepositoryStartup) -> App
         recoveryTitle: backupURL == nil ? nil : "Reveal Backup",
         recoveryAction: backupURL.map(RecoveryAction.revealBackup)
     )
+}
+
+@MainActor
+private final class LibraryWindowDelegate: NSObject, NSWindowDelegate {
+    private let onPrepareClose: @MainActor () async -> Void
+    private let onClose: @MainActor () -> Void
+    private var isPerformingClose = false
+
+    init(
+        onPrepareClose: @escaping @MainActor () async -> Void,
+        onClose: @escaping @MainActor () -> Void
+    ) {
+        self.onPrepareClose = onPrepareClose
+        self.onClose = onClose
+    }
+
+    func windowShouldClose(_ sender: NSWindow) -> Bool {
+        guard !isPerformingClose else { return true }
+        isPerformingClose = true
+        Task { @MainActor in
+            await onPrepareClose()
+            sender.performClose(nil)
+        }
+        return false
+    }
+
+    func windowWillClose(_ notification: Notification) {
+        onClose()
+    }
 }
 
 private final class WindowRetainerDelegate: NSObject, NSWindowDelegate {

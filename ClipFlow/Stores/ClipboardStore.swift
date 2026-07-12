@@ -9,6 +9,7 @@ final class ClipboardStore: ObservableObject {
     @Published private(set) var monitoringPause: MonitoringPause = .active
     @Published private(set) var banner: AppErrorPresentation?
     @Published private(set) var pendingDeletes: [UUID: PendingDelete] = [:]
+    @Published private(set) var customCategories: [PersistedCustomCategory] = []
 
     private let repository: any ClipboardRepositoryProtocol
     private let captureService: any ClipboardCaptureServiceProtocol
@@ -74,6 +75,7 @@ final class ClipboardStore: ObservableObject {
             startCleanupTask()
         }
 
+        await reloadCategories()
         await reload(.quickPanel)
         await reload(.library)
 
@@ -106,7 +108,7 @@ final class ClipboardStore: ObservableObject {
 
     func setSelection(_ id: UUID?, for surface: ClipSurface) {
         ensureSession(for: surface)
-        guard id == nil || session(for: surface).items.contains(where: { $0.id == id }) else {
+        guard canSelect(id, for: surface) else {
             sessions[surface]?.selectedItemID = nil
             return
         }
@@ -160,7 +162,7 @@ final class ClipboardStore: ObservableObject {
             sessions[surface] = ClipQuerySession(
                 query: current.query,
                 items: existing,
-                selectedItemID: selectedID(current.selectedItemID, visibleIn: existing),
+                selectedItemID: selectedID(current.selectedItemID, visibleIn: existing, surface: surface),
                 totalCount: page.totalCount,
                 nextOffset: page.nextOffset,
                 isLoading: false
@@ -414,6 +416,7 @@ final class ClipboardStore: ObservableObject {
         guard canMutate() else { return }
         do {
             try await repository.saveCategory(category)
+            await reloadCategories()
             await reconcileAllSessionsAfterCommittedMutation()
         } catch {
             publishBanner(code: errorCode(for: error), severity: .error)
@@ -424,6 +427,7 @@ final class ClipboardStore: ObservableObject {
         guard canMutate() else { return }
         do {
             try await repository.reorderCategories(ids: ids)
+            await reloadCategories()
         } catch {
             publishBanner(code: errorCode(for: error), severity: .error)
         }
@@ -433,6 +437,7 @@ final class ClipboardStore: ObservableObject {
         guard canMutate() else { return }
         do {
             try await repository.deleteCategory(id: id, migrateTo: replacementID)
+            await reloadCategories()
             await reconcileAllSessionsAfterCommittedMutation()
         } catch {
             publishBanner(code: errorCode(for: error), severity: .error)
@@ -550,7 +555,7 @@ private extension ClipboardStore {
         sessions[surface] = ClipQuerySession(
             query: query,
             items: page.items,
-            selectedItemID: selectedID(currentSelection, visibleIn: page.items),
+            selectedItemID: selectedID(currentSelection, visibleIn: page.items, surface: surface),
             totalCount: page.totalCount,
             nextOffset: page.nextOffset,
             isLoading: false
@@ -563,9 +568,28 @@ private extension ClipboardStore {
         }
     }
 
-    func selectedID(_ id: UUID?, visibleIn items: [ClipboardItem]) -> UUID? {
-        guard let id, items.contains(where: { $0.id == id }) else { return nil }
+    func reloadCategories() async {
+        do {
+            customCategories = try await repository.fetchCategories()
+        } catch {
+            publishBanner(code: errorCode(for: error), severity: .error)
+        }
+    }
+
+    func selectedID(_ id: UUID?, visibleIn items: [ClipboardItem], surface: ClipSurface) -> UUID? {
+        guard let id else { return nil }
+        guard items.contains(where: { $0.id == id }) || (surface == .library && itemCache[id] != nil) else {
+            return nil
+        }
         return id
+    }
+
+    func canSelect(_ id: UUID?, for surface: ClipSurface) -> Bool {
+        guard let id else { return true }
+        if session(for: surface).items.contains(where: { $0.id == id }) {
+            return true
+        }
+        return surface == .library && itemCache[id] != nil
     }
 
     func cachedOrLoadedItem(id: UUID) async -> ClipboardItem? {
@@ -806,6 +830,7 @@ private extension ClipboardStore {
     }
 
     func reloadAfterCommittedCleanup() async {
+        itemCache.removeAll()
         for surface in [ClipSurface.quickPanel, .library] {
             await reload(surface)
         }
@@ -971,7 +996,11 @@ private extension ClipboardStore {
                 current.items = Array(current.items.prefix(current.query.limit))
             }
             current.totalCount = max(current.totalCount, current.items.count)
-            current.selectedItemID = selectedID(current.selectedItemID, visibleIn: current.items)
+            current.selectedItemID = selectedID(
+                current.selectedItemID,
+                visibleIn: current.items,
+                surface: surface
+            )
             sessions[surface] = current
         }
     }
