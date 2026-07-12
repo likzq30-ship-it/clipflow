@@ -275,16 +275,19 @@ final class ClipboardStore: ObservableObject {
         }
     }
 
-    func delete(id: UUID) async {
-        guard canMutate() else { return }
+    @discardableResult
+    func delete(id: UUID) async -> Bool {
+        guard canMutate() else { return false }
         let deletedAt = now()
         do {
             try await repository.softDelete(id: id, at: deletedAt)
             itemCache.removeValue(forKey: id)
             removeVisibleItem(id: id)
             createPendingDelete(id: id, deletedAt: deletedAt)
+            return true
         } catch {
             publishBanner(code: errorCode(for: error), severity: .error)
+            return false
         }
     }
 

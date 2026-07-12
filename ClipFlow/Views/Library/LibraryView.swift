@@ -25,6 +25,7 @@ struct LibraryView: View {
         self.detailActions = ClipDetailActionAdapter(
             store: store,
             aiActions: aiActions,
+            jobs: jobs,
             allowedCategories: { store.customCategories }
         )
     }

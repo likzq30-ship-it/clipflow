@@ -11,6 +11,8 @@ actor InMemoryRepository: ClipboardRepositoryProtocol {
 
     private let searchMode: SearchMode
     private var activeAIGenerations: [AIJobKey: UUID] = [:]
+    private var pauseNextItemRead = false
+    private var pausedItemReadContinuation: CheckedContinuation<Void, Never>?
 
     init(searchMode: SearchMode = .parameterizedContains) {
         self.searchMode = searchMode
@@ -25,6 +27,15 @@ actor InMemoryRepository: ClipboardRepositoryProtocol {
 
     func setFailNextMutation(_ value: Bool) {
         failNextMutation = value
+    }
+
+    func pauseNextItemReadForTesting() {
+        pauseNextItemRead = true
+    }
+
+    func resumePausedItemReadForTesting() {
+        pausedItemReadContinuation?.resume()
+        pausedItemReadContinuation = nil
     }
 
     @discardableResult
@@ -88,6 +99,12 @@ actor InMemoryRepository: ClipboardRepositoryProtocol {
     }
 
     func item(id: UUID) async throws -> ClipboardItem? {
+        if pauseNextItemRead {
+            pauseNextItemRead = false
+            await withCheckedContinuation { continuation in
+                pausedItemReadContinuation = continuation
+            }
+        }
         guard let item = items[id], item.deletedAt == nil else { return nil }
         return item
     }

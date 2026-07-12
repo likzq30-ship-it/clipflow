@@ -14,15 +14,18 @@ protocol ClipDetailActions: AnyObject {
 final class ClipDetailActionAdapter: ClipDetailActions {
     private let store: ClipboardStore
     private let aiActions: AIActionCoordinator
+    private let jobs: AIJobCoordinator
     private let allowedCategories: () -> [PersistedCustomCategory]
 
     init(
         store: ClipboardStore,
         aiActions: AIActionCoordinator,
+        jobs: AIJobCoordinator,
         allowedCategories: @escaping () -> [PersistedCustomCategory]
     ) {
         self.store = store
         self.aiActions = aiActions
+        self.jobs = jobs
         self.allowedCategories = allowedCategories
     }
 
@@ -35,7 +38,9 @@ final class ClipDetailActionAdapter: ClipDetailActions {
     }
 
     func delete(itemID: UUID) async {
-        await store.delete(id: itemID)
+        guard await store.delete(id: itemID) else { return }
+        await jobs.cancelAll(itemID: itemID)
+        jobs.clearTransientResults(itemID: itemID)
     }
 
     func summarize(itemID: UUID) async {

@@ -34,6 +34,40 @@ final class ClipDetailActionTests: XCTestCase {
         let otherAfterActions = try await harness.repository.item(id: other.id)
         XCTAssertNotNil(otherAfterActions)
     }
+
+    func testDeleteClearsRenderedItemTransientRewriteState() async throws {
+        let harness = await ClipDetailActionHarness.make()
+        let rendered = await harness.seed(id: UUID(), content: "rendered")
+        let other = await harness.seed(id: UUID(), content: "other")
+        harness.store.setSelection(other.id, for: .library)
+
+        await harness.adapter.rewrite(itemID: rendered.id)
+        await waitForPendingAI(harness.ai)
+        await harness.ai.complete(with: AIResult(
+            itemID: rendered.id,
+            operation: .rewrite,
+            text: "rewritten",
+            providerLabel: "Local"
+        ))
+        await harness.jobs.waitForIdle()
+
+        let key = AIJobKey(itemID: rendered.id, operation: .rewrite)
+        XCTAssertEqual(
+            harness.jobs.states[key],
+            .success(AIResult(
+                itemID: rendered.id,
+                operation: .rewrite,
+                text: "rewritten",
+                providerLabel: "Local"
+            ))
+        )
+
+        await harness.adapter.delete(itemID: rendered.id)
+
+        XCTAssertNil(harness.jobs.states[key])
+        let otherAfterDelete = try await harness.repository.item(id: other.id)
+        XCTAssertNotNil(otherAfterDelete)
+    }
 }
 
 @MainActor
@@ -42,6 +76,7 @@ private final class ClipDetailActionHarness {
     let pasteboard: FakePasteboardWriter
     let store: ClipboardStore
     let ai: ControllableAIService
+    let jobs: AIJobCoordinator
     let adapter: ClipDetailActionAdapter
 
     private init(
@@ -49,12 +84,14 @@ private final class ClipDetailActionHarness {
         pasteboard: FakePasteboardWriter,
         store: ClipboardStore,
         ai: ControllableAIService,
+        jobs: AIJobCoordinator,
         adapter: ClipDetailActionAdapter
     ) {
         self.repository = repository
         self.pasteboard = pasteboard
         self.store = store
         self.ai = ai
+        self.jobs = jobs
         self.adapter = adapter
     }
 
@@ -80,6 +117,7 @@ private final class ClipDetailActionHarness {
         let adapter = ClipDetailActionAdapter(
             store: store,
             aiActions: actions,
+            jobs: jobs,
             allowedCategories: { [] }
         )
         return ClipDetailActionHarness(
@@ -87,6 +125,7 @@ private final class ClipDetailActionHarness {
             pasteboard: pasteboard,
             store: store,
             ai: ai,
+            jobs: jobs,
             adapter: adapter
         )
     }

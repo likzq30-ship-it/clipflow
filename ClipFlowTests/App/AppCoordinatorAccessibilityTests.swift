@@ -104,6 +104,66 @@ final class AppCoordinatorAccessibilityTests: XCTestCase {
         XCTAssertTrue(coordinator.libraryRecoveryBannerIsUndismissableForTesting)
     }
 
+    func testOpenLibrarySelectedIDLoadsItemBeforeSelectionAndWindowShow() async {
+        let repository = InMemoryRepository()
+        let settings = AppSettingsStore(userDefaults: UserDefaults(suiteName: UUID().uuidString)!)
+        let pasteboard = FakePasteboardWriter(result: true)
+        let store = makeStore(
+            repository: repository,
+            pasteboard: pasteboard,
+            settings: settings
+        )
+        let environment = AppEnvironment(
+            store: store,
+            settings: settings,
+            captureService: pasteboard,
+            hotkeyService: HotkeyService(
+                registrar: RecordingHotKeyRegistrar(),
+                settings: settings
+            ),
+            aiJobCoordinator: AIJobCoordinator(
+                ai: ControllableAIService(),
+                store: store
+            ),
+            startup: .readWrite(DatabasePreparation(
+                schemaVersion: 2,
+                searchMode: .parameterizedContains,
+                recoveredCategories: [],
+                backupURL: nil
+            ))
+        )
+        let item = await repository.seed(ClipboardItem(
+            id: UUID(),
+            content: "outside active page",
+            category: .english,
+            timestamp: Date(timeIntervalSince1970: 10)
+        ))
+        let coordinator = AppCoordinator(
+            environmentFactory: { environment },
+            terminateApplication: {}
+        )
+        coordinator.start()
+        await coordinator.waitForEnvironmentForTesting()
+        await repository.pauseNextItemReadForTesting()
+
+        coordinator.openLibrary(selectedID: item.id)
+        for _ in 0..<20 {
+            await Task.yield()
+        }
+
+        XCTAssertNil(store.sessions[.library]?.selectedItemID)
+        XCTAssertFalse(coordinator.hasLibraryWindowForTesting)
+
+        await repository.resumePausedItemReadForTesting()
+        for _ in 0..<50 where !coordinator.hasLibraryWindowForTesting {
+            await Task.yield()
+        }
+
+        XCTAssertEqual(store.sessions[.library]?.selectedItemID, item.id)
+        XCTAssertEqual(store.itemCache[item.id]?.content, "outside active page")
+        XCTAssertTrue(coordinator.hasLibraryWindowForTesting)
+    }
+
     func testQuickPanelReadyProbeWaitsForPopoverAndViewReadiness() async {
         let coordinator = try! await AppCoordinator.performanceFixture()
         coordinator.beginQuickPanelReadyProbeForTesting()
@@ -114,4 +174,17 @@ final class AppCoordinatorAccessibilityTests: XCTestCase {
         coordinator.markQuickPanelPopoverShownForTesting()
         XCTAssertFalse(coordinator.hasPendingQuickPanelReadyProbeForTesting)
     }
+}
+
+@MainActor
+private final class RecordingHotKeyRegistrar: HotKeyRegistrar {
+    func register(
+        _ shortcut: ShortcutMapping,
+        id: UInt32,
+        handler: @escaping @MainActor () -> Void
+    ) throws -> HotKeyToken {
+        HotKeyToken(rawID: id)
+    }
+
+    func unregister(_ token: HotKeyToken) {}
 }

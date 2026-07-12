@@ -81,13 +81,17 @@ final class AppCoordinator: NSObject, QuickPanelCoordinating {
     func openLibrary(selectedID: UUID?) {
         guard let environment else { return }
         if let selectedID {
-            environment.store.setSelection(selectedID, for: .library)
-            Task { @MainActor [store = environment.store] in
-                await store.loadItem(id: selectedID)
-                store.setSelection(selectedID, for: .library)
+            Task { @MainActor [weak self, environment] in
+                await environment.store.loadItem(id: selectedID)
+                environment.store.setSelection(selectedID, for: .library)
+                self?.presentLibraryWindow(environment: environment)
             }
+        } else {
+            presentLibraryWindow(environment: environment)
         }
+    }
 
+    private func presentLibraryWindow(environment: AppEnvironment) {
         let recoveryPresentation = readOnlyRecoveryPresentation(for: environment.store.repositoryStartup)
         #if DEBUG
         libraryRecoveryPresentationForTestingStorage = recoveryPresentation
@@ -527,6 +531,10 @@ extension AppCoordinator {
 
     var libraryRecoveryBannerIsUndismissableForTesting: Bool {
         libraryRecoveryBannerIsUndismissableForTestingStorage
+    }
+
+    var hasLibraryWindowForTesting: Bool {
+        libraryWindow != nil
     }
 
     var hasPendingQuickPanelReadyProbeForTesting: Bool {
