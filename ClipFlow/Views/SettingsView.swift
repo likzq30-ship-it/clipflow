@@ -137,7 +137,7 @@ struct SettingsView: View {
                             )
                             .onAppear { startRecording() }
                     } else {
-                        Text(hotkeyService.shortcutManager.currentShortcut.displayString)
+                        Text(hotkeyService.currentShortcut.displayString)
                             .font(.system(size: 14, weight: .medium, design: .monospaced))
                             .padding(.horizontal, 12).padding(.vertical, 6)
                             .background(RoundedRectangle(cornerRadius: 6).fill(Color.primary.opacity(0.1)))
@@ -236,8 +236,9 @@ struct SettingsView: View {
     private func saveRecording() {
         guard hasRecordedKey, recordedModifiers > 0 else { return }
         let shortcut = ShortcutMapping(keyCode: recordedKeyCode, modifiers: recordedModifiers)
-        hotkeyService.updateShortcut(shortcut)
-        stopRecording()
+        if hotkeyService.updateShortcut(shortcut) {
+            stopRecording()
+        }
     }
 
     private func stopRecording() {

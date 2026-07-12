@@ -1,74 +1,124 @@
-import Foundation
-import AppKit
 import Carbon
+import Combine
+import Foundation
 
-class HotkeyService: ObservableObject {
-    static let shared = HotkeyService()
+@MainActor
+final class HotkeyService: ObservableObject {
+    @MainActor
+    static let shared = HotkeyService(
+        registrar: CarbonHotKeyRegistrar(),
+        settings: AppSettingsStore(userDefaults: .standard)
+    )
 
-    @Published var shortcutManager = ShortcutManager()
+    @Published private(set) var currentShortcut: ShortcutMapping
+    @Published private(set) var lastError: HotkeyError?
 
-    private var hotKeyRef: EventHotKeyRef?
-    private var eventHandler: EventHandlerRef?
-    private static weak var activeService: HotkeyService?
+    var onHotkeyPressed: (@MainActor () -> Void)?
 
-    var onHotkeyPressed: (() -> Void)?
+    private let registrar: any HotKeyRegistrar
+    private let settings: AppSettingsStore
+    private let initialOnPressed: @MainActor () -> Void
+    private var activeToken: HotKeyToken?
+    private var nextID: UInt32 = 1
 
-    private init() {
-        Self.activeService = self
-        setupHotKey()
+    init(
+        registrar: any HotKeyRegistrar,
+        settings: AppSettingsStore,
+        onPressed: @escaping @MainActor () -> Void = {}
+    ) {
+        self.registrar = registrar
+        self.settings = settings
+        self.initialOnPressed = onPressed
+
+        let initial = Self.isValid(settings.shortcut) ? settings.shortcut : .defaultShortcut
+        if initial != settings.shortcut {
+            settings.commitShortcut(initial)
+        }
+        currentShortcut = initial
+        registerInitialShortcut()
     }
 
     deinit {
-        unregisterHotKey()
-    }
-
-    func setupHotKey() {
-        unregisterHotKey()
-        let shortcut = shortcutManager.currentShortcut
-        let hotKeyID = EventHotKeyID(signature: OSType(0x43464C57), id: 1)
-
-        var eventType = EventTypeSpec(eventClass: OSType(kEventClassKeyboard), eventKind: UInt32(kEventHotKeyPressed))
-        InstallEventHandler(GetApplicationEventTarget(), { _, event, _ in
-            var hotKeyID = EventHotKeyID()
-            GetEventParameter(
-                event,
-                EventParamName(kEventParamDirectObject),
-                EventParamType(typeEventHotKeyID),
-                nil,
-                MemoryLayout<EventHotKeyID>.size,
-                nil,
-                &hotKeyID
-            )
-            guard hotKeyID.signature == OSType(0x43464C57), hotKeyID.id == 1 else {
-                return noErr
+        if let activeToken {
+            MainActor.assumeIsolated {
+                registrar.unregister(activeToken)
             }
-            DispatchQueue.main.async {
-                HotkeyService.activeService?.onHotkeyPressed?()
-            }
-            return noErr
-        }, 1, &eventType, nil, &eventHandler)
-
-        RegisterEventHotKey(shortcut.keyCode, shortcut.modifiers, hotKeyID, GetApplicationEventTarget(), 0, &hotKeyRef)
-    }
-
-    func updateShortcut(_ shortcut: ShortcutMapping) {
-        shortcutManager.currentShortcut = shortcut
-        setupHotKey()
-    }
-
-    func resetToDefault() {
-        shortcutManager.reset()
-        setupHotKey()
-    }
-
-    private func unregisterHotKey() {
-        if let hotKeyRef {
-            UnregisterEventHotKey(hotKeyRef)
-            self.hotKeyRef = nil
         }
-        if let eventHandler {
-            RemoveEventHandler(eventHandler)
-            self.eventHandler = nil
+    }
+
+    @discardableResult
+    func updateShortcut(_ candidate: ShortcutMapping) -> Bool {
+        lastError = nil
+        guard candidate != currentShortcut else { return true }
+        guard Self.isValid(candidate) else {
+            lastError = .invalidShortcut
+            return false
+        }
+
+        do {
+            let token = try registrar.register(
+                candidate,
+                id: allocateID(),
+                handler: { [weak self] in
+                    self?.handlePressed()
+                }
+            )
+            let oldToken = activeToken
+            settings.commitShortcut(candidate)
+            currentShortcut = candidate
+            activeToken = token
+            if let oldToken {
+                registrar.unregister(oldToken)
+            }
+            return true
+        } catch let error as HotkeyError {
+            lastError = error
+            return false
+        } catch {
+            lastError = .registrationFailed(OSStatus(-1))
+            return false
+        }
+    }
+
+    @discardableResult
+    func resetToDefault() -> Bool {
+        updateShortcut(.defaultShortcut)
+    }
+}
+
+private extension HotkeyService {
+    static func isValid(_ shortcut: ShortcutMapping) -> Bool {
+        shortcut.modifiers != 0 && ShortcutMapping.knownKeyCodes.contains(shortcut.keyCode)
+    }
+
+    func registerInitialShortcut() {
+        do {
+            activeToken = try registrar.register(
+                currentShortcut,
+                id: allocateID(),
+                handler: { [weak self] in
+                    self?.handlePressed()
+                }
+            )
+        } catch let error as HotkeyError {
+            lastError = error
+        } catch {
+            lastError = .registrationFailed(OSStatus(-1))
+        }
+    }
+
+    func allocateID() -> UInt32 {
+        defer {
+            nextID = nextID == UInt32.max ? 1 : nextID + 1
+        }
+        return nextID
+    }
+
+    func handlePressed() {
+        if let onHotkeyPressed {
+            onHotkeyPressed()
+        } else {
+            initialOnPressed()
         }
     }
 }
