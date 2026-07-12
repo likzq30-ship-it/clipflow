@@ -24,7 +24,7 @@ struct ContentView: View {
     }
 
     private func colorForCategory(_ label: String) -> Color {
-        if let cat = ClipboardItem.Category.allCases.first { $0.label == label } {
+        if let cat = ClipboardItem.Category.allCases.first(where: { $0.label == label }) {
             switch cat {
             case .url: return .blue
             case .email: return .purple

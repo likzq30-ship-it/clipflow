@@ -227,13 +227,18 @@ final class ClipboardStore: ObservableObject {
         monitoringPause = .active
     }
 
-    func copy(id: UUID) async -> CopyOutcome {
+    func copy(id: UUID, recoverySurface: ClipSurface = .quickPanel) async -> CopyOutcome {
         guard let item = await cachedOrLoadedItem(id: id) else {
             publishBanner(code: .clipboardRead, severity: .warning)
             return .clipboardWriteFailed
         }
         guard captureService.write(item.content) else {
-            publishBanner(code: .clipboardWrite, severity: .warning)
+            publishBanner(
+                code: .clipboardWrite,
+                severity: .warning,
+                recoveryTitle: "Retry",
+                recoveryAction: .retry(surface: recoverySurface)
+            )
             return .clipboardWriteFailed
         }
 
@@ -482,6 +487,25 @@ final class ClipboardStore: ObservableObject {
             return false
         }
     }
+
+    func clearBanner(afterSuccessfulRecoveryOf action: RecoveryAction) {
+        guard banner?.recoveryAction == action else { return }
+        banner = nil
+    }
+
+    #if DEBUG
+    func publishBannerForTesting(
+        code: AppErrorCode,
+        recoveryAction: RecoveryAction
+    ) {
+        publishBanner(
+            code: code,
+            severity: .warning,
+            recoveryTitle: "Recover",
+            recoveryAction: recoveryAction
+        )
+    }
+    #endif
 
     func clearAIUsage() async {
         guard canMutate() else { return }
