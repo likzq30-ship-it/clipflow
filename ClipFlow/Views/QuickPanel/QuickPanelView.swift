@@ -46,6 +46,8 @@ struct QuickPanelView: View {
                     Task { await updateQuery(searchText: searchText, favoritesOnly: newValue) }
                 }
 
+                pendingUndoBar
+
                 list
                     .frame(maxHeight: .infinity)
 
@@ -81,6 +83,17 @@ struct QuickPanelView: View {
                 }
             }
         }
+        .onChange(of: store.session(for: .quickPanel).query.searchText) { newValue in
+            if searchText != newValue {
+                searchText = newValue
+            }
+        }
+        .onChange(of: store.session(for: .quickPanel).query.scope) { newValue in
+            let newFavoritesOnly = newValue == .favorites
+            if favoritesOnly != newFavoritesOnly {
+                favoritesOnly = newFavoritesOnly
+            }
+        }
     }
 }
 
@@ -91,6 +104,13 @@ private extension QuickPanelView {
 
     var visibleItems: [ClipboardItem] {
         Array(session.items.prefix(50))
+    }
+
+    var oldestPendingDelete: PendingDelete? {
+        store.pendingDeletes.values.sorted {
+            if $0.deletedAt != $1.deletedAt { return $0.deletedAt < $1.deletedAt }
+            return $0.itemID.uuidString < $1.itemID.uuidString
+        }.first
     }
 
     var header: some View {
@@ -237,6 +257,25 @@ private extension QuickPanelView {
                 )
                 .accessibilityIdentifier("quick.errorBanner")
             }
+        }
+    }
+
+    @ViewBuilder
+    var pendingUndoBar: some View {
+        if let pendingDelete = oldestPendingDelete {
+            HStack {
+                Text("Clip deleted")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                Spacer()
+                Button("Undo") {
+                    Task { await store.undoDelete(id: pendingDelete.itemID) }
+                }
+                .accessibilityIdentifier("quick.undo.\(pendingDelete.itemID.uuidString)")
+            }
+            .padding(.horizontal, 10)
+            .padding(.vertical, 6)
+            .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 8))
         }
     }
 

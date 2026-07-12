@@ -1,4 +1,4 @@
-import AppKit
+@preconcurrency import AppKit
 import SwiftUI
 
 enum QuickPanelCommand: Equatable {
@@ -137,7 +137,7 @@ struct QuickPanelKeyboardBridge: NSViewRepresentable {
         coordinator.removeMonitor()
     }
 
-    final class Coordinator {
+    final class Coordinator: @unchecked Sendable {
         var onCommand: (QuickPanelCommand) -> Void
         private weak var view: KeyboardView?
         private var monitor: Any?
@@ -150,18 +150,23 @@ struct QuickPanelKeyboardBridge: NSViewRepresentable {
             self.view = view
             guard monitor == nil else { return }
             monitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
-                guard let self,
-                      let view = self.view,
-                      view.window != nil,
-                      view.window == NSApp.keyWindow,
-                      let command = Self.command(for: event) else {
-                    return event
+                let keyCode = event.keyCode
+                let modifiers = event.modifierFlags
+                let shouldConsume = MainActor.assumeIsolated {
+                    guard let self,
+                          let view = self.view,
+                          view.window != nil,
+                          view.window == NSApp.keyWindow,
+                          let command = Self.command(keyCode: keyCode, modifiers: modifiers) else {
+                        return false
+                    }
+                    if Self.shouldLetTextInputHandle(keyCode: keyCode, modifiers: modifiers) {
+                        return false
+                    }
+                    self.onCommand(command)
+                    return true
                 }
-                if Self.shouldLetTextInputHandle(event) {
-                    return event
-                }
-                self.onCommand(command)
-                return nil
+                return shouldConsume ? nil : event
             }
         }
 
@@ -172,11 +177,15 @@ struct QuickPanelKeyboardBridge: NSViewRepresentable {
             monitor = nil
         }
 
-        private static func shouldLetTextInputHandle(_ event: NSEvent) -> Bool {
+        @MainActor
+        private static func shouldLetTextInputHandle(
+            keyCode: UInt16,
+            modifiers: NSEvent.ModifierFlags
+        ) -> Bool {
             guard NSApp.keyWindow?.firstResponder is NSTextView else { return false }
-            let flags = event.modifierFlags.intersection(.deviceIndependentFlagsMask)
+            let flags = modifiers.intersection(.deviceIndependentFlagsMask)
             let noCommandModifier = !flags.contains(.command)
-            return noCommandModifier && (event.keyCode == 51 || event.keyCode == 117)
+            return noCommandModifier && (keyCode == 51 || keyCode == 117)
         }
 
         #if DEBUG

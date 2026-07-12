@@ -1,4 +1,8 @@
 name: ClipFlow
+configs:
+  Debug: debug
+  Performance: release
+  Release: release
 options:
   bundleIdPrefix: com.clipflow
   deploymentTarget:
@@ -31,6 +35,13 @@ targets:
         LD_RUNPATH_SEARCH_PATHS: "$(inherited) @executable_path/../Frameworks"
         ENABLE_HARDENED_RUNTIME: YES
         CODE_SIGNING_ALLOWED: YES
+        SWIFT_STRICT_CONCURRENCY: complete
+        SWIFT_TREAT_WARNINGS_AS_ERRORS: YES
+        GCC_TREAT_WARNINGS_AS_ERRORS: YES
+      configs:
+        Performance:
+          ENABLE_TESTABILITY: YES
+          SWIFT_ACTIVE_COMPILATION_CONDITIONS: "$(inherited) DEBUG"
 
   ClipFlowTests:
     type: bundle.unit-test
@@ -44,6 +55,33 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: com.clipflow.v12.tests
         GENERATE_INFOPLIST_FILE: YES
         CODE_SIGNING_ALLOWED: NO
+        SWIFT_STRICT_CONCURRENCY: complete
+        SWIFT_TREAT_WARNINGS_AS_ERRORS: YES
+        GCC_TREAT_WARNINGS_AS_ERRORS: YES
+      configs:
+        Performance:
+          ENABLE_TESTABILITY: YES
+          SWIFT_ACTIVE_COMPILATION_CONDITIONS: "$(inherited) DEBUG"
+  ClipFlowUITests:
+
+    type: bundle.ui-testing
+    platform: macOS
+    sources:
+      - path: ClipFlowUITests
+    dependencies:
+      - target: ClipFlow
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.clipflow.v12.uitests
+        GENERATE_INFOPLIST_FILE: YES
+        CODE_SIGNING_ALLOWED: NO
+        TEST_TARGET_NAME: ClipFlow
+        SWIFT_STRICT_CONCURRENCY: complete
+        SWIFT_TREAT_WARNINGS_AS_ERRORS: YES
+        GCC_TREAT_WARNINGS_AS_ERRORS: YES
+      configs:
+        Performance:
+          SWIFT_ACTIVE_COMPILATION_CONDITIONS: "$(inherited) DEBUG"
 
 schemes:
   ClipFlow:
@@ -51,7 +89,9 @@ schemes:
       targets:
         ClipFlow: all
         ClipFlowTests: [test]
+        ClipFlowUITests: [test]
     test:
       gatherCoverageData: true
       targets:
         - name: ClipFlowTests
+        - name: ClipFlowUITests

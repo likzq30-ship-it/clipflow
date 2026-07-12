@@ -2,6 +2,7 @@ import SwiftUI
 
 struct ClipDetailView: View {
     let item: ClipboardItem
+    let isReadOnly: Bool
     let actions: any ClipDetailActions
     @ObservedObject var jobs: AIJobCoordinator
     let onExplicitDismiss: (UUID) async -> Void
@@ -72,6 +73,7 @@ private extension ClipDetailView {
                 )
             }
             .accessibilityIdentifier("library.favorite")
+            .disabled(isReadOnly)
 
             Button(role: .destructive) {
                 Task { await actions.delete(itemID: item.id) }
@@ -79,6 +81,7 @@ private extension ClipDetailView {
                 Label("Delete", systemImage: "trash")
             }
             .accessibilityIdentifier("library.delete")
+            .disabled(isReadOnly)
         }
     }
 
@@ -86,6 +89,7 @@ private extension ClipDetailView {
         Text(item.displayContent)
             .font(.body)
             .textSelection(.enabled)
+            .accessibilityIdentifier("library.detail.text.\(item.content)")
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding()
             .background(.quaternary.opacity(0.5), in: RoundedRectangle(cornerRadius: 12))

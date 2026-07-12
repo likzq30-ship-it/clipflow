@@ -918,7 +918,6 @@ private extension ClipboardRepository {
         return ClipboardItem(
             id: id,
             content: content,
-            contentType: .text,
             category: ClipboardItem.Category(rawValue: categoryText) ?? .other,
             customCategoryID: customCategoryID,
             customCategory: database.columnString(statement, at: 4),
@@ -1453,7 +1452,6 @@ private extension ClipboardRepository {
                     ClipboardItem(
                         id: id,
                         content: content,
-                        contentType: .text,
                         category: ClipboardItem.Category(rawValue: categoryText) ?? .other,
                         customCategoryID: customCategory?.id,
                         customCategory: customCategory?.name ?? rawCustomName,

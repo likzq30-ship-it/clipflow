@@ -35,6 +35,20 @@
                ReferencedContainer = "container:ClipFlow.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
+         <BuildActionEntry
+            buildForTesting = "YES"
+            buildForRunning = "NO"
+            buildForProfiling = "NO"
+            buildForArchiving = "NO"
+            buildForAnalyzing = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "4D65B62DA88B0F3D5D3B8333"
+               BuildableName = "ClipFlowUITests.xctest"
+               BlueprintName = "ClipFlowUITests"
+               ReferencedContainer = "container:ClipFlow.xcodeproj">
+            </BuildableReference>
+         </BuildActionEntry>
       </BuildActionEntries>
    </BuildAction>
    <TestAction
@@ -62,6 +76,17 @@
                BlueprintIdentifier = "D6001DC2EC6BEF8FE2830D33"
                BuildableName = "ClipFlowTests.xctest"
                BlueprintName = "ClipFlowTests"
+               ReferencedContainer = "container:ClipFlow.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
+         <TestableReference
+            skipped = "NO"
+            parallelizable = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "4D65B62DA88B0F3D5D3B8333"
+               BuildableName = "ClipFlowUITests.xctest"
+               BlueprintName = "ClipFlowUITests"
                ReferencedContainer = "container:ClipFlow.xcodeproj">
             </BuildableReference>
          </TestableReference>

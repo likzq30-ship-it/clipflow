@@ -69,7 +69,9 @@ struct QuickClipRow: View {
             Button("Delete", action: onDelete)
                 .disabled(isReadOnly)
         }
-        .accessibilityIdentifier("quick.row.\(item.id.uuidString)")
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(item.displayContent)
+        .accessibilityIdentifier("quick.row.text.\(item.content)")
     }
 }
 

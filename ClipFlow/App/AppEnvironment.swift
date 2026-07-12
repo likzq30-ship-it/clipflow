@@ -94,6 +94,7 @@ struct AppEnvironment {
         )
         let repository = ClipboardRepository(databaseURL: databaseURL)
         let preparedStartup = try await repository.prepare(legacyCategories: [])
+        try await seedPerformanceFixtureClips(repository)
         let startup = startupOverride ?? preparedStartup
         let captureService = NoopClipboardCaptureService()
         let logger = AppLogger()
@@ -149,6 +150,20 @@ private final class NoopLoginItemRegistrar: LoginItemRegistering {
 }
 
 private extension AppEnvironment {
+    static func seedPerformanceFixtureClips(_ repository: ClipboardRepository) async throws {
+        let base = Date(timeIntervalSince1970: 1_700_000_000)
+        for index in 0..<120 {
+            _ = try await repository.upsertCapturedText(
+                CapturedText(
+                    content: "Performance fixture clip \(index)",
+                    category: .english,
+                    capturedAt: base.addingTimeInterval(TimeInterval(index)),
+                    sourceBundleID: nil
+                )
+            )
+        }
+    }
+
     static func productionDatabaseURL(
         isUITesting: Bool,
         environment: [String: String]

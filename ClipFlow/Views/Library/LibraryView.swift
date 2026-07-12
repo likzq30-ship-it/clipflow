@@ -46,6 +46,7 @@ struct LibraryView: View {
             if let item = selectedDetailItem {
                 ClipDetailView(
                     item: item,
+                    isReadOnly: store.isReadOnlyRecovery,
                     actions: detailActions,
                     jobs: jobs,
                     onExplicitDismiss: { itemID in

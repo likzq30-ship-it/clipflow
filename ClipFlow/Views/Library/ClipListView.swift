@@ -45,7 +45,7 @@ struct ClipListView: View {
                     Label("Favorite", systemImage: "star")
                 }
                 .accessibilityIdentifier("library.favorite")
-                .disabled(selectedID == nil)
+                .disabled(selectedID == nil || store.isReadOnlyRecovery)
 
                 Button(role: .destructive) {
                     Task {
@@ -57,7 +57,7 @@ struct ClipListView: View {
                     Label("Delete", systemImage: "trash")
                 }
                 .accessibilityIdentifier("library.delete")
-                .disabled(selectedID == nil)
+                .disabled(selectedID == nil || store.isReadOnlyRecovery)
             }
         }
     }
@@ -147,5 +147,8 @@ private extension ClipListView {
                 .accessibilityIdentifier("library.undo")
             }
         }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(item.displayContent)
+        .accessibilityIdentifier("library.row.text.\(item.content)")
     }
 }
