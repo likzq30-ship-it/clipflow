@@ -25,6 +25,12 @@ struct AIResult: Equatable, Sendable {
     let providerLabel: String
 }
 
+enum AIProviderConfiguration: Equatable, Sendable {
+    case disabled
+    case localOllama(baseURL: URL, model: String)
+    case remoteHTTPS(baseURL: URL, model: String, consent: AIConsentOrigin)
+}
+
 enum AIProviderKind: String, Codable, Sendable {
     case disabled
     case localOllama
@@ -35,6 +41,12 @@ struct AIConsentOrigin: Codable, Hashable, Sendable {
     let scheme: String
     let host: String
     let port: Int
+
+    init(scheme: String, host: String, port: Int) {
+        self.scheme = scheme.lowercased()
+        self.host = host.lowercased()
+        self.port = port
+    }
 
     init?(url: URL) {
         guard let scheme = url.scheme?.lowercased(),
@@ -54,4 +66,30 @@ struct AIUsageRecord: Identifiable, Equatable, Sendable {
     let durationMilliseconds: Int
     let succeeded: Bool
     let errorCode: String?
+}
+
+enum AIAvailability: Equatable, Sendable {
+    case disabled
+    case available
+    case unavailable(code: AppErrorCode)
+}
+
+enum AIError: Error, Equatable, Sendable {
+    case disabled
+    case invalidEndpoint
+    case missingConsent
+    case httpStatus(Int)
+    case responseTooLarge
+    case invalidResponse
+    case emptyResponse
+    case invalidCategory
+    case redirectRejected
+    case timedOut
+    case cancelled
+}
+
+enum AIJobState: Equatable, Sendable {
+    case running
+    case success(AIResult)
+    case failure(code: String, message: String)
 }

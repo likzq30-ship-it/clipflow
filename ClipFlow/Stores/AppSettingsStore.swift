@@ -196,6 +196,32 @@ final class AppSettingsStore: ObservableObject {
             forKey: Keys.sensitiveContentProtectionEnabled
         )
     }
+
+    func validatedAIProviderConfiguration() throws -> AIProviderConfiguration {
+        switch aiProviderKind {
+        case .disabled:
+            return .disabled
+        case .localOllama:
+            let endpoint = aiEndpoint ?? URL(string: "http://localhost:11434")!
+            return .localOllama(
+                baseURL: try AIEndpointValidator.validateLocal(endpoint),
+                model: aiModel
+            )
+        case .remoteHTTPS:
+            guard let endpoint = aiEndpoint else {
+                throw AIError.invalidEndpoint
+            }
+            let consent = try AIEndpointValidator.validateRemote(
+                endpoint,
+                consent: aiConsentOrigin
+            )
+            return .remoteHTTPS(
+                baseURL: AIEndpointValidator.originURL(from: endpoint),
+                model: aiModel,
+                consent: consent
+            )
+        }
+    }
 }
 
 enum AppSettingsError: Error, Equatable, Sendable {
