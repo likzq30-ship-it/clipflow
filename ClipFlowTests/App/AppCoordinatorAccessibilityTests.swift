@@ -113,6 +113,9 @@ final class AppCoordinatorAccessibilityTests: XCTestCase {
             pasteboard: pasteboard,
             settings: settings
         )
+        let logger = InMemoryAppLogger()
+        let keychain = InMemoryKeychainCredentialStore()
+        let ai = ControllableAIService()
         let environment = AppEnvironment(
             store: store,
             settings: settings,
@@ -121,10 +124,14 @@ final class AppCoordinatorAccessibilityTests: XCTestCase {
                 registrar: RecordingHotKeyRegistrar(),
                 settings: settings
             ),
+            aiService: ai,
             aiJobCoordinator: AIJobCoordinator(
-                ai: ControllableAIService(),
+                ai: ai,
                 store: store
             ),
+            keychain: keychain,
+            launchAtLogin: LaunchAtLoginService(registrar: FakeLoginItemRegistrar()),
+            logger: logger,
             startup: .readWrite(DatabasePreparation(
                 schemaVersion: 2,
                 searchMode: .parameterizedContains,

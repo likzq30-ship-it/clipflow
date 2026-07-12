@@ -26,6 +26,7 @@ final class ClipboardStore: ObservableObject {
     private var pauseExpirationTask: Task<Void, Never>?
 
     var isReadOnlyRecovery: Bool { repositoryStartup.isReadOnly }
+    var privacyConfiguration: PrivacyConfiguration { settings.privacyConfiguration }
 
     init(
         repository: any ClipboardRepositoryProtocol,

@@ -164,7 +164,7 @@ final class AppCoordinator: NSObject, QuickPanelCoordinating {
         }
 
         let window = NSWindow(
-            contentRect: NSRect(x: 0, y: 0, width: 440, height: 420),
+            contentRect: NSRect(x: 0, y: 0, width: 560, height: 460),
             styleMask: [.titled, .closable, .miniaturizable],
             backing: .buffered,
             defer: false
@@ -174,17 +174,22 @@ final class AppCoordinator: NSObject, QuickPanelCoordinating {
         #if DEBUG
         settingsStoreForTestingStorage = environment.store
         #endif
+        let settingsActions = SettingsActionAdapter(
+            settings: environment.settings,
+            store: environment.store,
+            aiJobs: environment.aiJobCoordinator,
+            aiService: environment.aiService,
+            keychain: environment.keychain,
+            launchAtLogin: environment.launchAtLogin,
+            logger: environment.logger
+        )
         window.contentViewController = NSHostingController(
-            rootView: SettingsView(
+            rootView: SettingsRootView(
+                settings: environment.settings,
                 store: environment.store,
                 hotkeyService: environment.hotkeyService,
-                ollamaService: OllamaService.shared,
-                isOpen: Binding(
-                    get: { true },
-                    set: { [weak window] isOpen in
-                        if !isOpen { window?.close() }
-                    }
-                )
+                launchAtLogin: environment.launchAtLogin,
+                actions: settingsActions
             )
         )
         window.isReleasedWhenClosed = false

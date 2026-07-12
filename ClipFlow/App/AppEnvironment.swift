@@ -7,7 +7,11 @@ struct AppEnvironment {
     let settings: AppSettingsStore
     let captureService: any ClipboardCaptureServiceProtocol
     let hotkeyService: HotkeyService
+    let aiService: any AIServiceProtocol
     let aiJobCoordinator: AIJobCoordinator
+    let keychain: any KeychainCredentialStoring
+    let launchAtLogin: LaunchAtLoginService
+    let logger: any AppLogging
     let startup: RepositoryStartup
 
     static func live() async throws -> AppEnvironment {
@@ -43,6 +47,7 @@ struct AppEnvironment {
             configuration: settings.privacyConfiguration
         )
         let logger = AppLogger()
+        let keychain = KeychainCredentialStore()
         let store = ClipboardStore(
             repository: repository,
             captureService: captureService,
@@ -54,7 +59,7 @@ struct AppEnvironment {
         )
         let ai = AIService(
             http: URLSessionHTTPClient(),
-            keychain: KeychainCredentialStore(),
+            keychain: keychain,
             localRules: LocalRulesService()
         )
         let aiJobCoordinator = AIJobCoordinator(ai: ai, store: store)
@@ -67,7 +72,11 @@ struct AppEnvironment {
             settings: settings,
             captureService: captureService,
             hotkeyService: hotkeyService,
+            aiService: ai,
             aiJobCoordinator: aiJobCoordinator,
+            keychain: keychain,
+            launchAtLogin: LaunchAtLoginService(registrar: SystemLoginItemRegistrar()),
+            logger: logger,
             startup: startup
         )
     }
@@ -87,6 +96,7 @@ struct AppEnvironment {
         let preparedStartup = try await repository.prepare(legacyCategories: [])
         let startup = startupOverride ?? preparedStartup
         let captureService = NoopClipboardCaptureService()
+        let logger = AppLogger()
         let store = ClipboardStore(
             repository: repository,
             captureService: captureService,
@@ -99,11 +109,12 @@ struct AppEnvironment {
             backupManager: MigrationBackupManager(databaseDirectory: directory),
             settings: settings,
             startup: startup,
-            logger: AppLogger()
+            logger: logger
         )
+        let keychain = KeychainCredentialStore()
         let ai = AIService(
             http: URLSessionHTTPClient(),
-            keychain: KeychainCredentialStore(),
+            keychain: keychain,
             localRules: LocalRulesService()
         )
         return AppEnvironment(
@@ -114,9 +125,26 @@ struct AppEnvironment {
                 registrar: NoopHotKeyRegistrar(),
                 settings: settings
             ),
+            aiService: ai,
             aiJobCoordinator: AIJobCoordinator(ai: ai, store: store),
+            keychain: keychain,
+            launchAtLogin: LaunchAtLoginService(registrar: NoopLoginItemRegistrar()),
+            logger: logger,
             startup: startup
         )
+    }
+}
+
+@MainActor
+private final class NoopLoginItemRegistrar: LoginItemRegistering {
+    private(set) var isRegistered = false
+
+    func register() throws {
+        isRegistered = true
+    }
+
+    func unregister() throws {
+        isRegistered = false
     }
 }
 
