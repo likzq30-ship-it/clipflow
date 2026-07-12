@@ -46,7 +46,11 @@ struct LibraryView: View {
                 ClipDetailView(
                     item: item,
                     actions: detailActions,
-                    jobs: jobs
+                    jobs: jobs,
+                    onExplicitDismiss: { itemID in
+                        await jobs.cancelAll(itemID: itemID)
+                        jobs.clearTransientResults(itemID: itemID)
+                    }
                 )
                 .id(item.id)
             } else {

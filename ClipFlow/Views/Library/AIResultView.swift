@@ -25,23 +25,23 @@ struct AIResultView: View {
 private extension AIResultView {
     @ViewBuilder
     var content: some View {
-        if let persistedText, !persistedText.isEmpty {
-            success(text: persistedText)
-        } else {
-            switch state {
-            case .none:
+        switch state {
+        case .running:
+            HStack {
+                ProgressView()
+                Text("Running…")
+            }
+        case .success(let result):
+            success(text: result.text)
+        case .failure(_, let message):
+            Text(message)
+                .foregroundStyle(.red)
+        case .none:
+            if let persistedText, !persistedText.isEmpty {
+                success(text: persistedText)
+            } else {
                 Text("Idle")
                     .foregroundStyle(.secondary)
-            case .running:
-                HStack {
-                    ProgressView()
-                    Text("Running…")
-                }
-            case .success(let result):
-                success(text: result.text)
-            case .failure(_, let message):
-                Text(message)
-                    .foregroundStyle(.red)
             }
         }
     }

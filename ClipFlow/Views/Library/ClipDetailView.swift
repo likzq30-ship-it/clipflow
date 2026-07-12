@@ -4,6 +4,7 @@ struct ClipDetailView: View {
     let item: ClipboardItem
     let actions: any ClipDetailActions
     @ObservedObject var jobs: AIJobCoordinator
+    let onExplicitDismiss: (UUID) async -> Void
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
@@ -22,7 +23,10 @@ struct ClipDetailView: View {
         .safeAreaInset(edge: .bottom) {
             HStack {
                 Button {
-                    dismiss()
+                    Task {
+                        await onExplicitDismiss(item.id)
+                        dismiss()
+                    }
                 } label: {
                     Label("Back", systemImage: "chevron.left")
                 }

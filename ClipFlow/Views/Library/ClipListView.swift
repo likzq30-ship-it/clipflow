@@ -5,18 +5,22 @@ struct ClipListView: View {
     let actions: any ClipDetailActions
 
     var body: some View {
-        List(selection: selectionBinding) {
-            ForEach(session.items) { item in
-                clipRow(item)
-                    .tag(item.id)
-                    .onAppear {
-                        if item.id == session.items.last?.id {
-                            Task { await store.loadNextPage(.library) }
+        VStack(spacing: 0) {
+            pendingUndoBar
+
+            List(selection: selectionBinding) {
+                ForEach(session.items) { item in
+                    clipRow(item)
+                        .tag(item.id)
+                        .onAppear {
+                            if item.id == session.items.last?.id {
+                                Task { await store.loadNextPage(.library) }
+                            }
                         }
-                    }
+                }
             }
+            .accessibilityIdentifier("library.list")
         }
-        .accessibilityIdentifier("library.list")
         .toolbar {
             ToolbarItemGroup {
                 Button {
@@ -68,11 +72,37 @@ private extension ClipListView {
         session.selectedItemID
     }
 
+    var oldestPendingDelete: PendingDelete? {
+        store.pendingDeletes.values.sorted {
+            if $0.deletedAt != $1.deletedAt { return $0.deletedAt < $1.deletedAt }
+            return $0.itemID.uuidString < $1.itemID.uuidString
+        }.first
+    }
+
     var selectionBinding: Binding<UUID?> {
         Binding(
             get: { session.selectedItemID },
             set: { store.setSelection($0, for: .library) }
         )
+    }
+
+    @ViewBuilder
+    var pendingUndoBar: some View {
+        if let pendingDelete = oldestPendingDelete {
+            HStack {
+                Text("Clip deleted")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                Spacer()
+                Button("Undo") {
+                    Task { await store.undoDelete(id: pendingDelete.itemID) }
+                }
+                .accessibilityIdentifier("library.undo")
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 8)
+            .background(.regularMaterial)
+        }
     }
 
     func clipRow(_ item: ClipboardItem) -> some View {
