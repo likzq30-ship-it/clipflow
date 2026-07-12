@@ -83,7 +83,6 @@ final class ClipboardCaptureService: ClipboardCaptureServiceProtocol {
 
     func checkNowForTesting() {
         let detectionTime = now()
-        activateExpiredPause(at: detectionTime)
 
         let currentChangeCount = pasteboard.changeCount
         guard currentChangeCount != lastChangeCount else {
@@ -115,15 +114,5 @@ final class ClipboardCaptureService: ClipboardCaptureServiceProtocol {
 
     var timerIntervalForTesting: TimeInterval? {
         timer?.timeInterval
-    }
-}
-
-private extension ClipboardCaptureService {
-    func activateExpiredPause(at date: Date) {
-        guard case .until(let deadline) = pauseState,
-              deadline <= date else {
-            return
-        }
-        pauseState = .active
     }
 }

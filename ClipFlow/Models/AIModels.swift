@@ -31,6 +31,20 @@ enum AIProviderKind: String, Codable, Sendable {
     case remoteHTTPS
 }
 
+struct AIConsentOrigin: Codable, Hashable, Sendable {
+    let scheme: String
+    let host: String
+    let port: Int
+
+    init?(url: URL) {
+        guard let scheme = url.scheme?.lowercased(),
+              let host = url.host?.lowercased() else { return nil }
+        self.scheme = scheme
+        self.host = host
+        self.port = url.port ?? (scheme == "https" ? 443 : 80)
+    }
+}
+
 struct AIUsageRecord: Identifiable, Equatable, Sendable {
     let id: UUID
     let operation: AIOperation

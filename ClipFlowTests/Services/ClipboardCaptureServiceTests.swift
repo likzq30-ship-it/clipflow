@@ -163,7 +163,7 @@ final class ClipboardCaptureServiceTests: XCTestCase {
         XCTAssertEqual(service.pauseState, .indefinitely)
     }
 
-    func testPauseUntilAutomaticallyResumesAtDeadline() {
+    func testPauseUntilRequiresExplicitResumeAtDeadline() {
         var currentTime = Date(timeIntervalSince1970: 100)
         let service = ClipboardCaptureService(
             pasteboard: FakePasteboardClient(),
@@ -177,6 +177,9 @@ final class ClipboardCaptureServiceTests: XCTestCase {
 
         currentTime = Date(timeIntervalSince1970: 200)
         service.checkNowForTesting()
+        XCTAssertEqual(service.pauseState, .until(Date(timeIntervalSince1970: 200)))
+
+        service.resume()
         XCTAssertEqual(service.pauseState, .active)
     }
 
@@ -204,7 +207,7 @@ final class ClipboardCaptureServiceTests: XCTestCase {
         XCTAssertEqual(captures.map(\.content), ["after resume"])
     }
 
-    func testFuturePauseSuppressesCaptureAndExpiredPauseCapturesCurrentChange() {
+    func testFuturePauseSuppressesCaptureUntilExplicitResume() {
         var currentTime = Date(timeIntervalSince1970: 100)
         let pasteboard = FakePasteboardClient()
         let service = ClipboardCaptureService(
@@ -225,7 +228,14 @@ final class ClipboardCaptureServiceTests: XCTestCase {
         pasteboard.simulateExternalChange("at deadline")
         service.checkNowForTesting()
 
+        XCTAssertEqual(service.pauseState, .until(Date(timeIntervalSince1970: 200)))
+        XCTAssertTrue(captures.isEmpty)
+
+        service.resume()
+        pasteboard.simulateExternalChange("after explicit resume")
+        service.checkNowForTesting()
+
         XCTAssertEqual(service.pauseState, .active)
-        XCTAssertEqual(captures.map(\.content), ["at deadline"])
+        XCTAssertEqual(captures.map(\.content), ["after explicit resume"])
     }
 }
