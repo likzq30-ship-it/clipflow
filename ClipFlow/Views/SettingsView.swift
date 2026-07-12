@@ -2,6 +2,7 @@ import SwiftUI
 import Carbon
 
 struct SettingsView: View {
+    @ObservedObject var store: ClipboardStore
     @ObservedObject var hotkeyService: HotkeyService
     @ObservedObject var ollamaService: OllamaService
     @Binding var isOpen: Bool
@@ -94,6 +95,24 @@ struct SettingsView: View {
                     .buttonStyle(.bordered)
             }
 
+            settingRow(title: "剪贴板监控", description: monitoringDescription) {
+                HStack(spacing: 8) {
+                    Button("暂停") {
+                        store.pauseMonitoring(.indefinitely)
+                    }
+                    .buttonStyle(.bordered)
+                    .disabled(store.monitoringPause != .active)
+                    .accessibilityIdentifier("settings.pauseMonitoring")
+
+                    Button("恢复") {
+                        store.resumeMonitoring()
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .disabled(store.monitoringPause == .active)
+                    .accessibilityIdentifier("settings.resumeMonitoring")
+                }
+            }
+
             Spacer()
 
             HStack {
@@ -106,6 +125,17 @@ struct SettingsView: View {
     }
 
     private var appVersion: String { "1.0" }
+
+    private var monitoringDescription: String {
+        switch store.monitoringPause {
+        case .active:
+            return "正在记录新的剪贴板内容"
+        case .until(let date):
+            return "已暂停，直到 \(date.formatted(date: .omitted, time: .shortened))"
+        case .indefinitely:
+            return "已暂停，直到手动恢复"
+        }
+    }
 
     // MARK: - 快捷键 Tab
 

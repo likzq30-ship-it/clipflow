@@ -9,6 +9,11 @@ struct QuickPanelView: View {
 
     @State private var searchText = ""
     @State private var favoritesOnly = false
+    @State private var didCompleteAppearPass = false
+    @State private var didCompleteLayoutPass = false
+    @State private var didFocusSearch = false
+    @State private var didRenderListContent = false
+    @State private var didNotifyReady = false
     @FocusState private var isSearchFocused: Bool
 
     var body: some View {
@@ -50,6 +55,7 @@ struct QuickPanelView: View {
         }
         .frame(width: 440, height: 520)
         .background(.regularMaterial)
+        .background(readyLayoutProbe)
         .overlay(alignment: .topLeading) {
             QuickPanelKeyboardBridge { command in
                 Task { await commandHandler.handle(command) }
@@ -62,10 +68,16 @@ struct QuickPanelView: View {
             validateQuickPanelSelection()
             commandHandler.focusSearch = { isSearchFocused = true }
             commandHandler.focusList = { isSearchFocused = false }
+            resetReadyProbe()
             DispatchQueue.main.async {
+                didCompleteAppearPass = true
                 isSearchFocused = true
+                didFocusSearch = true
+                markEmptyListReadyIfNeeded()
+                notifyReadyIfNeeded()
                 DispatchQueue.main.async {
-                    onReady?()
+                    markEmptyListReadyIfNeeded()
+                    notifyReadyIfNeeded()
                 }
             }
         }
@@ -128,41 +140,67 @@ private extension QuickPanelView {
         }
     }
 
+    @ViewBuilder
     var list: some View {
-        List(selection: selectionBinding) {
-            ForEach(visibleItems) { item in
-                QuickClipRow(
-                    item: item,
-                    isSelected: item.id == session.selectedItemID,
-                    isReadOnly: store.isReadOnlyRecovery,
-                    onSelect: {
-                        store.setSelection(item.id, for: .quickPanel)
-                    },
-                    onCopy: {
-                        store.setSelection(item.id, for: .quickPanel)
-                        Task { await commandHandler.handle(.copySelection) }
-                    },
-                    onToggleFavorite: {
-                        store.setSelection(item.id, for: .quickPanel)
-                        Task { await commandHandler.handle(.toggleFavorite) }
-                    },
-                    onOpenInHistory: {
-                        store.setSelection(item.id, for: .quickPanel)
-                        Task { await commandHandler.handle(.openSelectionInLibrary) }
-                    },
-                    onDelete: {
-                        store.setSelection(item.id, for: .quickPanel)
-                        Task { await commandHandler.handle(.deleteSelection) }
-                    },
-                    onUndo: {
-                        Task { await store.undoDelete(id: item.id) }
-                    },
-                    canUndoDelete: store.pendingDeletes[item.id] != nil
-                )
-                .tag(item.id)
+        if visibleItems.isEmpty {
+            VStack(spacing: 8) {
+                Spacer()
+                Image(systemName: "tray")
+                    .font(.title2)
+                    .foregroundStyle(.secondary)
+                Text("No clips yet")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                Spacer()
             }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .accessibilityIdentifier("quick.emptyState")
+            .onAppear {
+                didRenderListContent = true
+                notifyReadyIfNeeded()
+            }
+        } else {
+            List(selection: selectionBinding) {
+                ForEach(visibleItems) { item in
+                    QuickClipRow(
+                        item: item,
+                        isSelected: item.id == session.selectedItemID,
+                        isReadOnly: store.isReadOnlyRecovery,
+                        onSelect: {
+                            store.setSelection(item.id, for: .quickPanel)
+                        },
+                        onCopy: {
+                            store.setSelection(item.id, for: .quickPanel)
+                            Task { await commandHandler.handle(.copySelection) }
+                        },
+                        onToggleFavorite: {
+                            store.setSelection(item.id, for: .quickPanel)
+                            Task { await commandHandler.handle(.toggleFavorite) }
+                        },
+                        onOpenInHistory: {
+                            store.setSelection(item.id, for: .quickPanel)
+                            Task { await commandHandler.handle(.openSelectionInLibrary) }
+                        },
+                        onDelete: {
+                            store.setSelection(item.id, for: .quickPanel)
+                            Task { await commandHandler.handle(.deleteSelection) }
+                        },
+                        onUndo: {
+                            Task { await store.undoDelete(id: item.id) }
+                        },
+                        canUndoDelete: store.pendingDeletes[item.id] != nil
+                    )
+                    .tag(item.id)
+                    .onAppear {
+                        if item.id == visibleItems.first?.id {
+                            didRenderListContent = true
+                            notifyReadyIfNeeded()
+                        }
+                    }
+                }
+            }
+            .accessibilityIdentifier("quick.list")
         }
-        .accessibilityIdentifier("quick.list")
     }
 
     var footer: some View {
@@ -209,6 +247,18 @@ private extension QuickPanelView {
         )
     }
 
+    var readyLayoutProbe: some View {
+        GeometryReader { _ in
+            Color.clear
+                .onAppear {
+                    DispatchQueue.main.async {
+                        didCompleteLayoutPass = true
+                        notifyReadyIfNeeded()
+                    }
+                }
+        }
+    }
+
     func updateQuery(searchText: String, favoritesOnly: Bool) async {
         await store.updateQuery(
             .quickPanel(searchText: searchText, favoritesOnly: favoritesOnly),
@@ -236,5 +286,31 @@ private extension QuickPanelView {
 
     func handleRecovery(_ action: RecoveryAction) async {
         await recoveryHandler?.handle(action)
+    }
+
+    func resetReadyProbe() {
+        didCompleteAppearPass = false
+        didCompleteLayoutPass = false
+        didFocusSearch = false
+        didRenderListContent = false
+        didNotifyReady = false
+    }
+
+    func markEmptyListReadyIfNeeded() {
+        if visibleItems.isEmpty {
+            didRenderListContent = true
+        }
+    }
+
+    func notifyReadyIfNeeded() {
+        guard !didNotifyReady,
+              didCompleteAppearPass,
+              didCompleteLayoutPass,
+              didFocusSearch,
+              didRenderListContent else {
+            return
+        }
+        didNotifyReady = true
+        onReady?()
     }
 }

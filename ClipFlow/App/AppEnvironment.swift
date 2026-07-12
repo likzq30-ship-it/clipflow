@@ -12,7 +12,10 @@ struct AppEnvironment {
 
     static func live() async throws -> AppEnvironment {
         let isUITesting = ProcessInfo.processInfo.arguments.contains("--ui-testing")
-        let databaseURL = try productionDatabaseURL(isUITesting: isUITesting)
+        let databaseURL = try productionDatabaseURL(
+            isUITesting: isUITesting,
+            environment: ProcessInfo.processInfo.environment
+        )
         let userDefaults = isUITesting
             ? UserDefaults(suiteName: "com.clipflow.v12.ui-testing.\(UUID().uuidString)")!
             : .standard
@@ -69,7 +72,7 @@ struct AppEnvironment {
         )
     }
 
-    static func performanceFixture() async throws -> AppEnvironment {
+    static func performanceFixture(startup startupOverride: RepositoryStartup? = nil) async throws -> AppEnvironment {
         let directory = FileManager.default.temporaryDirectory
             .appendingPathComponent("ClipFlow-\(UUID().uuidString)", isDirectory: true)
         try FileManager.default.createDirectory(
@@ -81,7 +84,8 @@ struct AppEnvironment {
             userDefaults: UserDefaults(suiteName: "com.clipflow.v12.tests.\(UUID().uuidString)")!
         )
         let repository = ClipboardRepository(databaseURL: databaseURL)
-        let startup = try await repository.prepare(legacyCategories: [])
+        let preparedStartup = try await repository.prepare(legacyCategories: [])
+        let startup = startupOverride ?? preparedStartup
         let captureService = NoopClipboardCaptureService()
         let store = ClipboardStore(
             repository: repository,
@@ -117,11 +121,20 @@ struct AppEnvironment {
 }
 
 private extension AppEnvironment {
-    static func productionDatabaseURL(isUITesting: Bool) throws -> URL {
-        if isUITesting,
-           let path = ProcessInfo.processInfo.environment["CLIPFLOW_TEST_DATABASE"],
-           !path.isEmpty {
-            return URL(fileURLWithPath: path)
+    static func productionDatabaseURL(
+        isUITesting: Bool,
+        environment: [String: String]
+    ) throws -> URL {
+        if isUITesting {
+            if let path = environment["CLIPFLOW_TEST_DATABASE"]?
+                .trimmingCharacters(in: .whitespacesAndNewlines),
+               !path.isEmpty {
+                return URL(fileURLWithPath: path)
+            }
+
+            let directory = FileManager.default.temporaryDirectory
+                .appendingPathComponent("ClipFlowUITesting-\(UUID().uuidString)", isDirectory: true)
+            return directory.appendingPathComponent("clipflow.sqlite3")
         }
 
         let supportDirectory = try FileManager.default.url(
@@ -135,6 +148,17 @@ private extension AppEnvironment {
             .appendingPathComponent("clipflow.sqlite3")
     }
 }
+
+#if DEBUG
+extension AppEnvironment {
+    static func databaseURLForTesting(
+        isUITesting: Bool,
+        environment: [String: String]
+    ) throws -> URL {
+        try productionDatabaseURL(isUITesting: isUITesting, environment: environment)
+    }
+}
+#endif
 
 @MainActor
 private final class NoopHotKeyRegistrar: HotKeyRegistrar {

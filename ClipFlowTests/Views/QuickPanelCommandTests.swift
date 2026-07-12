@@ -1,3 +1,4 @@
+import AppKit
 import XCTest
 @testable import ClipFlow
 
@@ -108,8 +109,25 @@ final class QuickPanelCommandTests: XCTestCase {
         XCTAssertEqual(harness.focusSearchCount, 1)
         XCTAssertEqual(harness.focusListCount, 0)
 
-        await harness.handler.handle(.moveDown)
+        await harness.handler.handle(.focusList)
         XCTAssertEqual(harness.focusListCount, 1)
+    }
+
+    func testCommandFBridgeMappingSeparatesSearchAndListFocus() {
+        XCTAssertEqual(
+            QuickPanelKeyboardBridge.Coordinator.commandForTesting(
+                keyCode: 3,
+                modifiers: [.command]
+            ),
+            .focusSearch
+        )
+        XCTAssertEqual(
+            QuickPanelKeyboardBridge.Coordinator.commandForTesting(
+                keyCode: 3,
+                modifiers: [.command, .shift]
+            ),
+            .focusList
+        )
     }
 }
 

@@ -22,11 +22,16 @@ final class AppCoordinator: NSObject, QuickPanelCoordinating {
     private var settingsDelegate: WindowRetainerDelegate?
     private var copyFeedbackTask: Task<Void, Never>?
     private var readyContinuation: CheckedContinuation<Void, Never>?
+    private var readyProbeState = QuickPanelReadyProbeState()
+    private var isReadyProbeActive = false
     private var simulatedQuickPanelShownForTesting = false
 
     #if DEBUG
     private(set) var openSettingsCountForTesting = 0
     private(set) var quitRequestCountForTesting = 0
+    private var settingsStoreForTestingStorage: ClipboardStore?
+    private var libraryRecoveryPresentationForTestingStorage: AppErrorPresentation?
+    private var libraryRecoveryBannerIsUndismissableForTestingStorage = false
     #endif
 
     init(
@@ -41,8 +46,8 @@ final class AppCoordinator: NSObject, QuickPanelCoordinating {
     deinit {
         copyFeedbackTask?.cancel()
         bootstrapTask?.cancel()
-        if let statusItem {
-            MainActor.assumeIsolated {
+        MainActor.assumeIsolated {
+            if let statusItem {
                 NSStatusBar.system.removeStatusItem(statusItem)
             }
         }
@@ -77,6 +82,12 @@ final class AppCoordinator: NSObject, QuickPanelCoordinating {
             environment.store.setSelection(selectedID, for: .library)
         }
 
+        let recoveryPresentation = readOnlyRecoveryPresentation(for: environment.store.repositoryStartup)
+        #if DEBUG
+        libraryRecoveryPresentationForTestingStorage = recoveryPresentation
+        libraryRecoveryBannerIsUndismissableForTestingStorage = recoveryPresentation != nil
+        #endif
+
         if let libraryWindow {
             libraryWindow.makeKeyAndOrderFront(nil)
             NSApp.activate(ignoringOtherApps: true)
@@ -94,6 +105,7 @@ final class AppCoordinator: NSObject, QuickPanelCoordinating {
         window.contentViewController = NSHostingController(
             rootView: HistoryWindowView(
                 store: environment.store,
+                recoveryHandler: recoveryHandler,
                 selectedID: selectedID,
                 onSettings: { [weak self] in self?.openSettings() }
             )
@@ -129,8 +141,12 @@ final class AppCoordinator: NSObject, QuickPanelCoordinating {
         )
         window.title = "ClipFlow Settings"
         window.center()
+        #if DEBUG
+        settingsStoreForTestingStorage = environment.store
+        #endif
         window.contentViewController = NSHostingController(
             rootView: SettingsView(
+                store: environment.store,
                 hotkeyService: environment.hotkeyService,
                 ollamaService: OllamaService.shared,
                 isOpen: Binding(
@@ -346,12 +362,22 @@ private extension AppCoordinator {
     }
 
     func presentQuickPanel() {
+        startQuickPanelReadyProbe()
         installQuickPanelContent()
         guard let button = statusItem?.button else {
             simulatedQuickPanelShownForTesting = true
+            markQuickPanelPopoverShownForReadyProbe()
             return
         }
         popover?.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
+        if popover?.isShown == true {
+            markQuickPanelPopoverShownForReadyProbe()
+        } else {
+            DispatchQueue.main.async { [weak self] in
+                guard let self, self.popover?.isShown == true else { return }
+                self.markQuickPanelPopoverShownForReadyProbe()
+            }
+        }
     }
 
     func installQuickPanelContent() {
@@ -378,7 +404,7 @@ private extension AppCoordinator {
                     commandHandler: commandHandler,
                     recoveryHandler: recoveryHandler,
                     shortcutDisplay: environment.hotkeyService.currentShortcut.displayString,
-                    onReady: { [weak self] in self?.resumeReadyProbeIfNeeded() }
+                    onReady: { [weak self] in self?.markQuickPanelViewReadyForReadyProbe() }
                 )
             )
         }
@@ -427,20 +453,62 @@ private extension AppCoordinator {
         statusItem?.button?.image?.isTemplate = true
     }
 
+    func startQuickPanelReadyProbe() {
+        readyProbeState = QuickPanelReadyProbeState()
+        isReadyProbeActive = true
+    }
+
+    func markQuickPanelPopoverShownForReadyProbe() {
+        readyProbeState.popoverShown = true
+        resumeReadyProbeIfNeeded()
+    }
+
+    func markQuickPanelViewReadyForReadyProbe() {
+        readyProbeState.viewReady = true
+        resumeReadyProbeIfNeeded()
+    }
+
     func resumeReadyProbeIfNeeded() {
+        guard isReadyProbeActive, readyProbeState.isReady else { return }
         readyContinuation?.resume()
         readyContinuation = nil
+        isReadyProbeActive = false
+        readyProbeState = QuickPanelReadyProbeState()
     }
 }
 
 #if DEBUG
 extension AppCoordinator {
-    static func performanceFixture() async throws -> AppCoordinator {
-        let environment = try await AppEnvironment.performanceFixture()
+    static func performanceFixture(startup: RepositoryStartup? = nil) async throws -> AppCoordinator {
+        let environment = try await AppEnvironment.performanceFixture(startup: startup)
         return AppCoordinator(
             environmentFactory: { environment },
             terminateApplication: {}
         )
+    }
+
+    var environmentStoreForTesting: ClipboardStore? {
+        environment?.store
+    }
+
+    var settingsStoreForTesting: ClipboardStore? {
+        settingsStoreForTestingStorage
+    }
+
+    var libraryRecoveryPresentationForTesting: AppErrorPresentation? {
+        libraryRecoveryPresentationForTestingStorage
+    }
+
+    var libraryRecoveryBannerIsUndismissableForTesting: Bool {
+        libraryRecoveryBannerIsUndismissableForTestingStorage
+    }
+
+    var hasPendingQuickPanelReadyProbeForTesting: Bool {
+        isReadyProbeActive
+    }
+
+    func waitForEnvironmentForTesting() async {
+        await bootstrapTask?.value
     }
 
     var statusButtonForTesting: NSStatusBarButton? {
@@ -490,11 +558,32 @@ extension AppCoordinator {
         }
     }
 
+    func beginQuickPanelReadyProbeForTesting() {
+        startQuickPanelReadyProbe()
+    }
+
+    func markQuickPanelViewReadyForTesting() {
+        markQuickPanelViewReadyForReadyProbe()
+    }
+
+    func markQuickPanelPopoverShownForTesting() {
+        markQuickPanelPopoverShownForReadyProbe()
+    }
+
     func closeQuickPanelForTesting() {
         closeQuickPanel()
     }
 }
 #endif
+
+private struct QuickPanelReadyProbeState {
+    var popoverShown = false
+    var viewReady = false
+
+    var isReady: Bool {
+        popoverShown && viewReady
+    }
+}
 
 private struct StartupQuickPanelView: View {
     let title: String
@@ -516,6 +605,7 @@ private struct StartupQuickPanelView: View {
 
 private struct HistoryWindowView: View {
     @ObservedObject var store: ClipboardStore
+    let recoveryHandler: RecoveryActionHandler?
     let selectedID: UUID?
     let onSettings: () -> Void
 
@@ -529,6 +619,16 @@ private struct HistoryWindowView: View {
             }
             .padding()
             Divider()
+            if let presentation = readOnlyRecoveryPresentation(for: store.repositoryStartup) {
+                ErrorBanner(
+                    presentation: presentation,
+                    isUndismissable: true,
+                    onRecoveryAction: handleRecovery
+                )
+                .accessibilityIdentifier("library.recoveryBanner")
+                .padding(.horizontal, 12)
+                .padding(.top, 12)
+            }
             List(selection: Binding(
                 get: { store.session(for: .library).selectedItemID },
                 set: { store.setSelection($0, for: .library) }
@@ -551,6 +651,23 @@ private struct HistoryWindowView: View {
             }
         }
     }
+
+    func handleRecovery(_ action: RecoveryAction) async {
+        await recoveryHandler?.handle(action)
+    }
+}
+
+private func readOnlyRecoveryPresentation(for startup: RepositoryStartup) -> AppErrorPresentation? {
+    guard case .readOnlyRecovery(_, let backupURL, _) = startup else { return nil }
+    return AppErrorPresentation(
+        code: .databaseReadOnly,
+        message: backupURL.map {
+            "ClipFlow is browsing a read-only database. Backup: \($0.lastPathComponent)"
+        } ?? "ClipFlow is browsing a read-only database.",
+        severity: .warning,
+        recoveryTitle: backupURL == nil ? nil : "Reveal Backup",
+        recoveryAction: backupURL.map(RecoveryAction.revealBackup)
+    )
 }
 
 private final class WindowRetainerDelegate: NSObject, NSWindowDelegate {

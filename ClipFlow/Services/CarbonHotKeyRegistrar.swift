@@ -34,11 +34,13 @@ final class CarbonHotKeyRegistrar: HotKeyRegistrar {
     }
 
     deinit {
-        for hotKey in hotKeys.values {
-            UnregisterEventHotKey(hotKey)
-        }
-        if let eventHandler {
-            RemoveEventHandler(eventHandler)
+        MainActor.assumeIsolated {
+            for hotKey in hotKeys.values {
+                UnregisterEventHotKey(hotKey)
+            }
+            if let eventHandler {
+                RemoveEventHandler(eventHandler)
+            }
         }
     }
 

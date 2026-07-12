@@ -9,6 +9,7 @@ enum QuickPanelCommand: Equatable {
     case toggleFavorite
     case deleteSelection
     case focusSearch
+    case focusList
     case escape
 }
 
@@ -51,6 +52,8 @@ final class QuickPanelCommandHandler {
             await store.delete(id: id)
         case .focusSearch:
             focusSearch()
+        case .focusList:
+            focusList()
         case .escape:
             await escape()
         }
@@ -176,11 +179,27 @@ struct QuickPanelKeyboardBridge: NSViewRepresentable {
             return noCommandModifier && (event.keyCode == 51 || event.keyCode == 117)
         }
 
+        #if DEBUG
+        static func commandForTesting(
+            keyCode: UInt16,
+            modifiers: NSEvent.ModifierFlags
+        ) -> QuickPanelCommand? {
+            command(keyCode: keyCode, modifiers: modifiers)
+        }
+        #endif
+
         fileprivate static func command(for event: NSEvent) -> QuickPanelCommand? {
-            let flags = event.modifierFlags.intersection(.deviceIndependentFlagsMask)
+            command(keyCode: event.keyCode, modifiers: event.modifierFlags)
+        }
+
+        private static func command(
+            keyCode: UInt16,
+            modifiers: NSEvent.ModifierFlags
+        ) -> QuickPanelCommand? {
+            let flags = modifiers.intersection(.deviceIndependentFlagsMask)
             let hasCommand = flags.contains(.command)
             let hasShift = flags.contains(.shift)
-            switch event.keyCode {
+            switch keyCode {
             case 126:
                 return .moveUp
             case 125:
@@ -188,7 +207,7 @@ struct QuickPanelKeyboardBridge: NSViewRepresentable {
             case 36:
                 return hasCommand ? .openSelectionInLibrary : .copySelection
             case 3:
-                return hasCommand && hasShift ? .moveDown : (hasCommand ? .focusSearch : nil)
+                return hasCommand && hasShift ? .focusList : (hasCommand ? .focusSearch : nil)
             case 51, 117:
                 return .deleteSelection
             case 53:

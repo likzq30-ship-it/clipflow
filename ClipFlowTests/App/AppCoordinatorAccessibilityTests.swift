@@ -63,4 +63,55 @@ final class AppCoordinatorAccessibilityTests: XCTestCase {
         coordinator.performQuitMenuItemForTesting()
         XCTAssertEqual(coordinator.quitRequestCountForTesting, 1)
     }
+
+    func testSettingsWindowReceivesTheLiveClipboardStore() async {
+        let coordinator = try! await AppCoordinator.performanceFixture()
+        coordinator.start()
+        await coordinator.waitForEnvironmentForTesting()
+
+        coordinator.performSettingsMenuItemForTesting()
+
+        let settingsStore = try! XCTUnwrap(coordinator.settingsStoreForTesting)
+        let environmentStore = try! XCTUnwrap(coordinator.environmentStoreForTesting)
+        XCTAssertTrue(settingsStore === environmentStore)
+
+        settingsStore.pauseMonitoring(.indefinitely)
+        XCTAssertEqual(environmentStore.monitoringPause, .indefinitely)
+
+        settingsStore.resumeMonitoring()
+        XCTAssertEqual(environmentStore.monitoringPause, .active)
+    }
+
+    func testLibraryShowsReadOnlyRecoveryBannerWithRevealAction() async {
+        let backupURL = FileManager.default.temporaryDirectory
+            .appendingPathComponent("clipflow.sqlite3.backup")
+        let coordinator = try! await AppCoordinator.performanceFixture(
+            startup: .readOnlyRecovery(
+                databaseURL: FileManager.default.temporaryDirectory
+                    .appendingPathComponent("clipflow.sqlite3"),
+                backupURL: backupURL,
+                errorCode: "SQLITE_READONLY"
+            )
+        )
+        coordinator.start()
+        await coordinator.waitForEnvironmentForTesting()
+
+        coordinator.openLibrary(selectedID: nil)
+
+        let presentation = try! XCTUnwrap(coordinator.libraryRecoveryPresentationForTesting)
+        XCTAssertEqual(presentation.code, .databaseReadOnly)
+        XCTAssertEqual(presentation.recoveryAction, .revealBackup(backupURL))
+        XCTAssertTrue(coordinator.libraryRecoveryBannerIsUndismissableForTesting)
+    }
+
+    func testQuickPanelReadyProbeWaitsForPopoverAndViewReadiness() async {
+        let coordinator = try! await AppCoordinator.performanceFixture()
+        coordinator.beginQuickPanelReadyProbeForTesting()
+
+        coordinator.markQuickPanelViewReadyForTesting()
+        XCTAssertTrue(coordinator.hasPendingQuickPanelReadyProbeForTesting)
+
+        coordinator.markQuickPanelPopoverShownForTesting()
+        XCTAssertFalse(coordinator.hasPendingQuickPanelReadyProbeForTesting)
+    }
 }
