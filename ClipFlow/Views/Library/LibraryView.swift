@@ -54,7 +54,6 @@ struct LibraryView: View {
                         jobs.clearTransientResults(itemID: itemID)
                     }
                 )
-                .id(item.id)
             } else {
                 VStack(spacing: 10) {
                     Image(systemName: "doc.on.clipboard")

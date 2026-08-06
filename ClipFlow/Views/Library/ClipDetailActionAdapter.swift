@@ -5,6 +5,7 @@ protocol ClipDetailActions: AnyObject {
     func copy(itemID: UUID) async
     func toggleFavorite(itemID: UUID) async
     func delete(itemID: UUID) async
+    func updateContent(itemID: UUID, content: String) async
     func summarize(itemID: UUID) async
     func categorize(itemID: UUID) async
     func rewrite(itemID: UUID) async
@@ -41,6 +42,10 @@ final class ClipDetailActionAdapter: ClipDetailActions {
         guard await store.delete(id: itemID) else { return }
         await jobs.cancelAll(itemID: itemID)
         jobs.clearTransientResults(itemID: itemID)
+    }
+
+    func updateContent(itemID: UUID, content: String) async {
+        await store.updateContent(id: itemID, content: content)
     }
 
     func summarize(itemID: UUID) async {

@@ -27,7 +27,7 @@ struct GeneralSettingsView: View {
                 }
             }
 
-            Stepper("Retention Days: \(retentionDays)", value: $retentionDays, in: 1...365)
+            Stepper(String(localized: "Retention Days: \(retentionDays)"), value: $retentionDays, in: 1...365)
                 .disabled(storesForever)
                 .onChange(of: retentionDays) { newValue in
                     Task { await actions.setRetentionPolicy(.days(newValue)) }
@@ -51,7 +51,7 @@ struct GeneralSettingsView: View {
             }
 
             if let lastError = launchAtLogin.lastError {
-                Text("Launch at Login failed: \(String(describing: lastError))")
+                Text(String(localized: "Launch at Login failed: \(String(describing: lastError))"))
                     .foregroundStyle(.red)
             }
         }

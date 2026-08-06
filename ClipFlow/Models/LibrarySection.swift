@@ -27,15 +27,15 @@ enum LibrarySection: Hashable, Sendable {
     var title: String {
         switch self {
         case .all:
-            return "All Clips"
+            return String(localized: "All Clips")
         case .favorites:
-            return "Favorites"
+            return String(localized: "Favorites")
         case .today:
-            return "Today"
+            return String(localized: "Today")
         case .builtIn(let category):
             return category.label
         case .custom:
-            return "Custom"
+            return String(localized: "Custom")
         }
     }
 

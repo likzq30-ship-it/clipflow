@@ -49,7 +49,7 @@ struct CategorySettingsView: View {
                         } label: {
                             Image(systemName: "trash")
                         }
-                        .accessibilityLabel("Delete \(category.name)")
+                        .accessibilityLabel(String(localized: "Delete \(category.name)"))
                         .help("Delete category and clear assignments")
                     }
                 }

@@ -115,6 +115,7 @@
 		D71D6DA3D71BD655E8A98405 /* LibraryUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E7FC120A4D75DC3238921746 /* LibraryUITests.swift */; };
 		D867D28BDE90C164C7696698 /* InMemoryMigrationBackupManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 73D63A4A1631ED82F83E6D0D /* InMemoryMigrationBackupManager.swift */; };
 		E16F3ED41CBED188D00FD77F /* SettingsActionAdapter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4AA368E519E8299798EED6FF /* SettingsActionAdapter.swift */; };
+		E75E12041B3648B46F94E17A /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = D79AAD8ED9938653281A37E7 /* Localizable.xcstrings */; };
 		EBDFEBA70216B6DE02ACE56C /* ClipListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E0C108FD33DDE7B7CB85626 /* ClipListView.swift */; };
 		EC936D2C3360D1964514EB40 /* URLSessionHTTPClientTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15BF0A779F909F482FCCDEF1 /* URLSessionHTTPClientTests.swift */; };
 		ED42AF9E67AD060874599856 /* RecoveryActionHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11999F43E99455B0E2D0218C /* RecoveryActionHandler.swift */; };
@@ -244,6 +245,7 @@
 		D4BDC7382CCD6B1847930CDF /* GeneralSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeneralSettingsView.swift; sourceTree = "<group>"; };
 		D5A014BE46B4CBFEBDCE946D /* ClipboardItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardItem.swift; sourceTree = "<group>"; };
 		D5EB1FAFD466C4B3D85F8658 /* ClipFlow.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ClipFlow.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		D79AAD8ED9938653281A37E7 /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
 		D844402B29C9E80A58A5A012 /* UITestLauncher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UITestLauncher.swift; sourceTree = "<group>"; };
 		D8C915AF6BB8A6A5574FFB91 /* AIJobCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIJobCoordinator.swift; sourceTree = "<group>"; };
 		D8FF7AB3E849840064FFD8B4 /* AppSettingsStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSettingsStoreTests.swift; sourceTree = "<group>"; };
@@ -353,6 +355,7 @@
 			isa = PBXGroup;
 			children = (
 				CDFB76DD7564B5DCD9A3A092 /* Assets.xcassets */,
+				D79AAD8ED9938653281A37E7 /* Localizable.xcstrings */,
 			);
 			path = Resources;
 			sourceTree = "<group>";
@@ -714,6 +717,7 @@
 			knownRegions = (
 				Base,
 				en,
+				"zh-Hans",
 			);
 			mainGroup = 9D713B1513BAC646044B94A4;
 			minimizedProjectReferenceProxies = 1;
@@ -735,6 +739,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				D173B62134B0C244E591043A /* Assets.xcassets in Resources */,
+				E75E12041B3648B46F94E17A /* Localizable.xcstrings in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

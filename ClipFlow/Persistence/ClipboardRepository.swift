@@ -129,6 +129,7 @@ actor ClipboardRepository: ClipboardRepositoryProtocol {
             }
 
             searchMode = preparation.searchMode
+            try database?.applyPrivateFilePermissions()
             let state = RepositoryStartup.readWrite(preparation)
             startup = state
             return state
@@ -254,6 +255,25 @@ actor ClipboardRepository: ClipboardRepositoryProtocol {
                 WHERE id = ? AND deleted_at IS NULL
                 """,
                 bindings: [.double(at.timeIntervalSince1970), .string(id.uuidString)],
+                database: database
+            )
+            defer { sqlite3_finalize(statement) }
+            try database.stepExpectingDone(statement)
+            return try requireCanonicalItem(id: id, database: database)
+        }
+    }
+
+    func setContent(id: UUID, content: String) async throws -> ClipboardItem {
+        let database = try writableDatabase()
+        let hash = Self.contentHash(content)
+        return try withRepositoryTransaction(database) {
+            let statement = try prepared(
+                """
+                UPDATE clipboard_items
+                SET content = ?, content_hash = ?
+                WHERE id = ? AND deleted_at IS NULL
+                """,
+                bindings: [.string(content), .string(hash), .string(id.uuidString)],
                 database: database
             )
             defer { sqlite3_finalize(statement) }
@@ -798,13 +818,10 @@ private extension ClipboardRepository {
                 preCommitPermissionHookForTesting = nil
                 try hook()
             }
-            try database.applyPrivateFilePermissions()
-            try verifyPrivateDatabaseFilePermissions(database)
             try database.execute("COMMIT")
             return result
         } catch {
             try? database.execute("ROLLBACK")
-            try? database.applyPrivateFilePermissions()
             throw error
         }
     }

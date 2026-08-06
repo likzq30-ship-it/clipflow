@@ -8,6 +8,10 @@ struct ClipDetailView: View {
     let onExplicitDismiss: (UUID) async -> Void
     @Environment(\.dismiss) private var dismiss
 
+    @State private var editedContent: String = ""
+    @State private var lastItemID: UUID?
+    @FocusState private var isEditing: Bool
+
     var body: some View {
         VStack(spacing: 0) {
             ScrollView {
@@ -47,6 +51,21 @@ struct ClipDetailView: View {
             .background(.regularMaterial)
         }
         .accessibilityIdentifier("library.detail")
+        .onAppear {
+            editedContent = item.content
+            lastItemID = item.id
+        }
+        .onChange(of: item.id) { newID in
+            saveIfNeeded()
+            editedContent = item.content
+            lastItemID = newID
+            isEditing = false
+        }
+        .onChange(of: isEditing) { editing in
+            if !editing {
+                saveIfNeeded()
+            }
+        }
     }
 }
 
@@ -86,13 +105,22 @@ private extension ClipDetailView {
     }
 
     var content: some View {
-        Text(item.displayContent)
+        TextEditor(text: $editedContent)
             .font(.body)
-            .textSelection(.enabled)
-            .accessibilityIdentifier("library.detail.text.\(item.content)")
+            .focused($isEditing)
+            .frame(minHeight: 120)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .padding()
+            .padding(8)
             .background(.quaternary.opacity(0.5), in: RoundedRectangle(cornerRadius: 12))
+            .disabled(isReadOnly)
+            .accessibilityIdentifier("library.detail.text.\(item.content)")
+    }
+
+    func saveIfNeeded() {
+        guard let lastID = lastItemID,
+              editedContent != item.content,
+              !editedContent.isEmpty else { return }
+        Task { await actions.updateContent(itemID: lastID, content: editedContent) }
     }
 
     var aiActions: some View {

@@ -1,25 +1,23 @@
 # ClipFlow
 
-macOS clipboard history in the menu bar.
+macOS 菜单栏剪贴板历史管理工具。
 
-**[中文](README_CN.md)** | English
+## 功能特性
 
-## Features
+- **剪贴板历史** — 自动记录 macOS 文本剪贴板内容，0.5 秒轮询
+- **智能分类** — 内置分类：链接、邮件、代码、数字、中文、英文、中英混合、其他
+- **搜索与筛选** — 全文搜索 + 分类侧边栏
+- **收藏** — 标记重要记录，收藏不会被自动清理
+- **自动清理** — 可配置 1~30 天保留期，到期自动删除非收藏记录
+- **全局快捷键** — 自定义快捷键呼出面板，默认 ⌘⇧V
+- **隐私优先** — 数据本地 SQLite 存储
 
-- Records everything you copy (polls every 0.5s)
-- Auto-classifies clips: links, emails, code, numbers, Chinese/English/mixed
-- Full-text search with category sidebar
-- Pin items to keep them from auto-cleanup
-- Auto-cleanup after 1–30 days (configurable)
-- Global hotkey ⌘⇧V (customizable)
-- All data stored locally in SQLite
-
-## Requirements
+## 系统要求
 
 - macOS 13.0+
-- Xcode 15.0+
+- Xcode 15.0+（构建需要）
 
-## Build
+## 构建
 
 ```bash
 git clone https://github.com/likzq30-ship-it/clipflow.git
@@ -27,25 +25,31 @@ cd clipflow
 xcodebuild -project ClipFlow.xcodeproj -scheme ClipFlow -configuration Release build
 ```
 
-Or open `ClipFlow.xcodeproj` and Cmd+B.
+产物位于 Xcode DerivedData 目录，或打开 `ClipFlow.xcodeproj` 用 Xcode 直接 Cmd+B。
 
-## Usage
+## 使用方法
 
-- Menu bar icon — click or ⌘⇧V to open
-- Click a clip to copy it back
-- Search bar for text search
-- Sidebar filters by category
-- Hover for pin/delete buttons
-- Right-click icon for settings
+- ClipFlow 运行后图标显示在菜单栏
+- 点击图标或按快捷键 ⌘⇧V 呼出面板
+- 点击任意记录可复制回剪贴板
+- 搜索栏支持全文检索
+- 左侧分类栏可按类型筛选
+- 悬停显示收藏和删除按钮
+- 右键菜单栏图标 → 设置 / 退出
 
-## Privacy
+## 隐私说明
 
-Local SQLite at `~/Library/Application Support/ClipFlow/clipflow.sqlite3`. No network, no uploads.
+- 所有剪贴板数据存储在本地 SQLite：`~/Library/Application Support/ClipFlow/clipflow.sqlite3`
+- 数据完全本地，不上传任何内容
 
-## Screenshot
+## 截图
 
-![Menu Bar](screenshots/menu-bar.png)
+![菜单栏](screenshots/menu-bar.png)
 
 ## License
 
-MIT — [likzq](https://github.com/likzq30-ship-it)
+MIT License. 详见 [LICENSE](LICENSE).
+
+## Authors
+
+- [likzq](https://github.com/likzq30-ship-it)

@@ -33,14 +33,14 @@ private extension MonitoringStatusView {
     func statusText(now: Date) -> String {
         switch pause {
         case .active:
-            return "Monitoring"
+            return String(localized: "Monitoring")
         case .indefinitely:
-            return "Paused"
+            return String(localized: "Paused")
         case .until(let deadline):
             let remaining = max(0, Int(deadline.timeIntervalSince(now)))
-            if remaining == 0 { return "Monitoring" }
+            if remaining == 0 { return String(localized: "Monitoring") }
             let minutes = max(1, remaining / 60)
-            return "Paused \(minutes)m"
+            return String(localized: "Paused \(minutes)m")
         }
     }
 }

@@ -85,10 +85,14 @@ extension ClipboardItem {
         content.count > 200 ? String(content.prefix(200)) + "..." : content
     }
 
-    var timeAgo: String {
+    private nonisolated(unsafe) static let sharedRelativeFormatter: RelativeDateTimeFormatter = {
         let formatter = RelativeDateTimeFormatter()
         formatter.unitsStyle = .abbreviated
-        return formatter.localizedString(for: timestamp, relativeTo: Date())
+        return formatter
+    }()
+
+    var timeAgo: String {
+        Self.sharedRelativeFormatter.localizedString(for: timestamp, relativeTo: Date())
     }
 
 }

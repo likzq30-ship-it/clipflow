@@ -6,6 +6,7 @@ struct QuickPanelView: View {
     let recoveryHandler: RecoveryActionHandler?
     let shortcutDisplay: String
     let onReady: (() -> Void)?
+    let onOpenSettings: () -> Void
 
     @State private var searchText = ""
     @State private var favoritesOnly = false
@@ -157,6 +158,15 @@ private extension QuickPanelView {
             .buttonStyle(.plain)
             .help("Open History")
             .accessibilityIdentifier("quick.openLibrary")
+
+            Button {
+                onOpenSettings()
+            } label: {
+                Image(systemName: "gearshape")
+            }
+            .buttonStyle(.plain)
+            .help("Settings")
+            .accessibilityIdentifier("quick.openSettings")
         }
     }
 
@@ -226,7 +236,7 @@ private extension QuickPanelView {
     var footer: some View {
         VStack(spacing: 8) {
             HStack {
-                Text("\(session.totalCount) results")
+                Text(String(localized: "\(session.totalCount) results"))
                     .font(.caption)
                     .foregroundStyle(.secondary)
                 Spacer()
@@ -240,10 +250,10 @@ private extension QuickPanelView {
                     presentation: AppErrorPresentation(
                         code: .databaseReadOnly,
                         message: backupURL.map {
-                            "ClipFlow is browsing a read-only database. Backup: \($0.lastPathComponent)"
-                        } ?? "ClipFlow is browsing a read-only database.",
+                            String(localized: "ClipFlow is browsing a read-only database. Backup: \($0.lastPathComponent)")
+                        } ?? String(localized: "ClipFlow is browsing a read-only database."),
                         severity: .warning,
-                        recoveryTitle: backupURL == nil ? nil : "Reveal Backup",
+                        recoveryTitle: backupURL == nil ? nil : String(localized: "Reveal Backup"),
                         recoveryAction: backupURL.map(RecoveryAction.revealBackup)
                     ),
                     isUndismissable: true,

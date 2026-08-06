@@ -87,7 +87,7 @@ private final class UITestCoordinator: NSObject, QuickPanelCoordinating {
             defer: false
         )
         window.isReleasedWhenClosed = false
-        window.title = "ClipFlow Settings"
+        window.title = String(localized: "ClipFlow Settings")
         window.center()
         window.contentViewController = NSHostingController(
             rootView: SettingsRootView(
@@ -121,7 +121,7 @@ private extension UITestCoordinator {
         mainMenu.addItem(appItem)
 
         let settings = NSMenuItem(
-            title: "Settings…",
+            title: String(localized: "Settings…"),
             action: #selector(openSettingsMenuItem(_:)),
             keyEquivalent: ","
         )
@@ -158,7 +158,7 @@ private extension UITestCoordinator {
             defer: false
         )
         window.isReleasedWhenClosed = false
-        window.title = "ClipFlow Quick Panel"
+        window.title = String(localized: "ClipFlow Quick Panel")
         window.center()
         window.contentViewController = NSHostingController(
             rootView: QuickPanelView(
@@ -166,7 +166,8 @@ private extension UITestCoordinator {
                 commandHandler: commandHandler,
                 recoveryHandler: recoveryHandler,
                 shortcutDisplay: environment.hotkeyService.currentShortcut.displayString,
-                onReady: nil
+                onReady: nil,
+                onOpenSettings: { }
             )
         )
         quickWindow = window
@@ -197,7 +198,7 @@ private extension UITestCoordinator {
             defer: false
         )
         window.isReleasedWhenClosed = false
-        window.title = "ClipFlow Library"
+        window.title = String(localized: "ClipFlow Library")
         window.minSize = NSSize(width: 760, height: 520)
         window.center()
         consentPresenter.window = window
@@ -222,7 +223,7 @@ private extension UITestCoordinator {
             defer: false
         )
         window.isReleasedWhenClosed = false
-        window.title = "ClipFlow UI Test Startup Failed"
+        window.title = String(localized: "ClipFlow UI Test Startup Failed")
         window.contentViewController = NSHostingController(
             rootView: VStack(spacing: 12) {
                 Text("ClipFlow UI test bootstrap failed")

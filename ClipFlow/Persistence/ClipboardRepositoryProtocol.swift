@@ -5,6 +5,7 @@ protocol ClipboardRepositoryProtocol: Sendable {
     func item(id: UUID) async throws -> ClipboardItem?
     func upsertCapturedText(_ capture: CapturedText) async throws -> ClipboardItem
     func markCopied(id: UUID, at: Date) async throws -> ClipboardItem
+    func setContent(id: UUID, content: String) async throws -> ClipboardItem
     func setFavorite(id: UUID, isFavorite: Bool) async throws -> ClipboardItem
     func setSummary(id: UUID, summary: String?) async throws -> ClipboardItem
     func setCustomCategory(id: UUID, categoryID: UUID?) async throws -> ClipboardItem

@@ -40,7 +40,7 @@ struct PrivacySettingsView: View {
                         } label: {
                             Image(systemName: "minus.circle")
                         }
-                        .accessibilityLabel("Remove \(bundleID)")
+                        .accessibilityLabel(String(localized: "Remove \(bundleID)"))
                         .help("Remove excluded application")
                     }
                 }

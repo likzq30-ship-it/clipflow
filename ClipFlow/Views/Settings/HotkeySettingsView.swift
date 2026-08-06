@@ -15,7 +15,7 @@ struct HotkeySettingsView: View {
             }
 
             if let lastError = hotkeyService.lastError {
-                Text("Hotkey update failed: \(String(describing: lastError))")
+                Text(String(localized: "Hotkey update failed: \(String(describing: lastError))"))
                     .foregroundStyle(.red)
             }
         }

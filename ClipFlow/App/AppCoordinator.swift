@@ -119,7 +119,7 @@ final class AppCoordinator: NSObject, QuickPanelCoordinating {
             backing: .buffered,
             defer: false
         )
-        window.title = "ClipFlow Library"
+        window.title = String(localized: "ClipFlow Library")
         window.minSize = NSSize(width: 760, height: 520)
         window.setFrameAutosaveName("ClipFlow.LibraryWindow")
         window.center()
@@ -169,7 +169,7 @@ final class AppCoordinator: NSObject, QuickPanelCoordinating {
             backing: .buffered,
             defer: false
         )
-        window.title = "ClipFlow Settings"
+        window.title = String(localized: "ClipFlow Settings")
         window.center()
         #if DEBUG
         settingsStoreForTestingStorage = environment.store
@@ -261,8 +261,8 @@ private extension AppCoordinator {
         button.target = self
         button.action = #selector(statusButtonClicked(_:))
         button.sendAction(on: [.leftMouseUp, .rightMouseUp])
-        button.setAccessibilityLabel("ClipFlow")
-        button.setAccessibilityHelp("Open ClipFlow clipboard history")
+        button.setAccessibilityLabel(String(localized: "ClipFlow"))
+        button.setAccessibilityHelp(String(localized: "Open ClipFlow clipboard history"))
         button.setAccessibilityValue("active")
     }
 
@@ -275,7 +275,7 @@ private extension AppCoordinator {
 
         appMenu.addItem(
             NSMenuItem(
-                title: "About ClipFlow",
+                title: String(localized: "About ClipFlow"),
                 action: #selector(NSApplication.orderFrontStandardAboutPanel(_:)),
                 keyEquivalent: ""
             )
@@ -283,7 +283,7 @@ private extension AppCoordinator {
         appMenu.addItem(NSMenuItem.separator())
 
         let settings = NSMenuItem(
-            title: "Settings…",
+            title: String(localized: "Settings…"),
             action: #selector(openSettingsMenuItem(_:)),
             keyEquivalent: ","
         )
@@ -293,7 +293,7 @@ private extension AppCoordinator {
         appMenu.addItem(NSMenuItem.separator())
 
         let quit = NSMenuItem(
-            title: "Quit ClipFlow",
+            title: String(localized: "Quit ClipFlow"),
             action: #selector(quitMenuItem(_:)),
             keyEquivalent: "q"
         )
@@ -341,7 +341,7 @@ private extension AppCoordinator {
         let menu = NSMenu()
 
         let history = NSMenuItem(
-            title: "Open History",
+            title: String(localized: "Open History"),
             action: #selector(openLibraryMenuItem(_:)),
             keyEquivalent: ""
         )
@@ -349,7 +349,7 @@ private extension AppCoordinator {
         menu.addItem(history)
 
         let settings = NSMenuItem(
-            title: "Settings",
+            title: String(localized: "Settings"),
             action: #selector(openSettingsMenuItem(_:)),
             keyEquivalent: ""
         )
@@ -358,9 +358,9 @@ private extension AppCoordinator {
 
         let monitoringTitle: String
         if case .active = environment?.store.monitoringPause ?? .active {
-            monitoringTitle = "Pause Monitoring"
+            monitoringTitle = String(localized: "Pause Monitoring")
         } else {
-            monitoringTitle = "Resume Monitoring"
+            monitoringTitle = String(localized: "Resume Monitoring")
         }
         let monitoring = NSMenuItem(
             title: monitoringTitle,
@@ -371,14 +371,14 @@ private extension AppCoordinator {
         menu.addItem(monitoring)
 
         let about = NSMenuItem(
-            title: "About ClipFlow",
+            title: String(localized: "About ClipFlow"),
             action: #selector(NSApplication.orderFrontStandardAboutPanel(_:)),
             keyEquivalent: ""
         )
         menu.addItem(about)
 
         let quit = NSMenuItem(
-            title: "Quit ClipFlow",
+            title: String(localized: "Quit ClipFlow"),
             action: #selector(quitMenuItem(_:)),
             keyEquivalent: ""
         )
@@ -439,7 +439,8 @@ private extension AppCoordinator {
                     commandHandler: commandHandler,
                     recoveryHandler: recoveryHandler,
                     shortcutDisplay: environment.hotkeyService.currentShortcut.displayString,
-                    onReady: { [weak self] in self?.markQuickPanelViewReadyForReadyProbe() }
+                    onReady: { [weak self] in self?.markQuickPanelViewReadyForReadyProbe() },
+                    onOpenSettings: { [weak self] in self?.openSettings() }
                 )
             )
         }
@@ -447,7 +448,7 @@ private extension AppCoordinator {
         if let bootstrapError {
             return AnyView(
                 StartupQuickPanelView(
-                    title: "ClipFlow could not start",
+                    title: String(localized: "ClipFlow could not start"),
                     message: String(describing: bootstrapError)
                 )
                 .frame(width: 440, height: 520)
@@ -456,8 +457,8 @@ private extension AppCoordinator {
 
         return AnyView(
             StartupQuickPanelView(
-                title: "Starting ClipFlow…",
-                message: "Preparing the clipboard database."
+                title: String(localized: "Starting ClipFlow…"),
+                message: String(localized: "Preparing the clipboard database.")
             )
             .frame(width: 440, height: 520)
         )
@@ -647,10 +648,10 @@ func readOnlyRecoveryPresentation(for startup: RepositoryStartup) -> AppErrorPre
     return AppErrorPresentation(
         code: .databaseReadOnly,
         message: backupURL.map {
-            "ClipFlow is browsing a read-only database. Backup: \($0.lastPathComponent)"
-        } ?? "ClipFlow is browsing a read-only database.",
+            String(localized: "ClipFlow is browsing a read-only database. Backup: \($0.lastPathComponent)")
+        } ?? String(localized: "ClipFlow is browsing a read-only database."),
         severity: .warning,
-        recoveryTitle: backupURL == nil ? nil : "Reveal Backup",
+        recoveryTitle: backupURL == nil ? nil : String(localized: "Reveal Backup"),
         recoveryAction: backupURL.map(RecoveryAction.revealBackup)
     )
 }

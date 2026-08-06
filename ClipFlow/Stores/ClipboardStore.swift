@@ -62,7 +62,7 @@ final class ClipboardStore: ObservableObject {
             publishBanner(
                 code: .databaseReadOnly,
                 severity: .warning,
-                recoveryTitle: backupURL == nil ? nil : "Reveal Backup",
+                recoveryTitle: backupURL == nil ? nil : String(localized: "Reveal Backup"),
                 recoveryAction: backupURL.map(RecoveryAction.revealBackup)
             )
         }
@@ -173,7 +173,7 @@ final class ClipboardStore: ObservableObject {
             publishBanner(
                 code: errorCode(for: error),
                 severity: .error,
-                recoveryTitle: "Retry",
+                recoveryTitle: String(localized: "Retry"),
                 recoveryAction: .retry(surface: surface)
             )
         }
@@ -197,11 +197,9 @@ final class ClipboardStore: ObservableObject {
             do {
                 guard let committedItem = try await repository.item(id: item.id) else {
                     itemCache.removeValue(forKey: item.id)
-                    await reconcileAllSessionsAfterCommittedMutation()
                     return
                 }
                 itemCache[committedItem.id] = committedItem
-                await reconcileAllSessionsAfterCommittedMutation()
                 mergeIfVisible(committedItem)
             } catch {
                 publishBanner(code: errorCode(for: error), severity: .error)
@@ -239,7 +237,7 @@ final class ClipboardStore: ObservableObject {
             publishBanner(
                 code: .clipboardWrite,
                 severity: .warning,
-                recoveryTitle: "Retry",
+                recoveryTitle: String(localized: "Retry"),
                 recoveryAction: .retry(surface: recoverySurface)
             )
             return .clipboardWriteFailed
@@ -252,7 +250,7 @@ final class ClipboardStore: ObservableObject {
         do {
             let updated = try await repository.markCopied(id: id, at: now())
             itemCache[id] = updated
-            await reconcileAllSessionsAfterCommittedMutation()
+            updateItemInAllSessions(updated)
             return .copied
         } catch {
             publishBanner(code: .databaseCopyMetadata, severity: .warning)
@@ -270,7 +268,18 @@ final class ClipboardStore: ObservableObject {
         do {
             let updated = try await repository.setFavorite(id: id, isFavorite: !current.isFavorite)
             itemCache[id] = updated
-            await reconcileAllSessionsAfterCommittedMutation()
+            updateItemInAllSessions(updated)
+        } catch {
+            publishBanner(code: errorCode(for: error), severity: .error)
+        }
+    }
+
+    func updateContent(id: UUID, content: String) async {
+        guard canMutate() else { return }
+        do {
+            let updated = try await repository.setContent(id: id, content: content)
+            itemCache[id] = updated
+            updateItemInAllSessions(updated)
         } catch {
             publishBanner(code: errorCode(for: error), severity: .error)
         }
@@ -470,7 +479,7 @@ final class ClipboardStore: ObservableObject {
                 publishBanner(
                     code: .migrationBackupDelete,
                     severity: .warning,
-                    recoveryTitle: "Delete Backups",
+                    recoveryTitle: String(localized: "Delete Backups"),
                     recoveryAction: .deleteMigrationBackups
                 )
                 return .partial(removedClipCount: removed, code: .migrationBackupDelete)
@@ -510,7 +519,7 @@ final class ClipboardStore: ObservableObject {
         publishBanner(
             code: code,
             severity: .warning,
-            recoveryTitle: "Recover",
+            recoveryTitle: String(localized: "Recover"),
             recoveryAction: recoveryAction
         )
     }
@@ -618,7 +627,7 @@ private extension ClipboardStore {
                 publishBanner(
                     code: .databaseReadOnly,
                     severity: .warning,
-                    recoveryTitle: backupURL == nil ? nil : "Reveal Backup",
+                    recoveryTitle: backupURL == nil ? nil : String(localized: "Reveal Backup"),
                     recoveryAction: backupURL.map(RecoveryAction.revealBackup)
                 )
             } else {
@@ -735,37 +744,37 @@ private extension ClipboardStore {
     func message(for code: AppErrorCode) -> String {
         switch code {
         case .databaseOpen:
-            return "ClipFlow could not open its clipboard database."
+            return String(localized: "ClipFlow could not open its clipboard database.")
         case .databaseWrite:
-            return "ClipFlow could not save the requested clipboard change."
+            return String(localized: "ClipFlow could not save the requested clipboard change.")
         case .databaseCopyMetadata:
-            return "Copied, but ClipFlow could not refresh copy metadata."
+            return String(localized: "Copied, but ClipFlow could not refresh copy metadata.")
         case .databaseReadOnly:
-            return "ClipFlow is running in read-only recovery mode."
+            return String(localized: "ClipFlow is running in read-only recovery mode.")
         case .migrationFailed:
-            return "ClipFlow could not finish database migration."
+            return String(localized: "ClipFlow could not finish database migration.")
         case .migrationBackupDelete:
-            return "ClipFlow could not delete all migration backups."
+            return String(localized: "ClipFlow could not delete all migration backups.")
         case .clipboardRead:
-            return "ClipFlow could not read that clipboard item."
+            return String(localized: "ClipFlow could not read that clipboard item.")
         case .clipboardWrite:
-            return "ClipFlow could not write to the system pasteboard."
+            return String(localized: "ClipFlow could not write to the system pasteboard.")
         case .hotkeyRegistration:
-            return "ClipFlow could not register the global shortcut."
+            return String(localized: "ClipFlow could not register the global shortcut.")
         case .privacyExcluded:
-            return "Clipboard capture was skipped for an excluded app."
+            return String(localized: "Clipboard capture was skipped for an excluded app.")
         case .privacySize:
-            return "Clipboard capture was skipped because the text is too large."
+            return String(localized: "Clipboard capture was skipped because the text is too large.")
         case .privacySensitive:
-            return "Clipboard capture was skipped because it may contain sensitive content."
+            return String(localized: "Clipboard capture was skipped because it may contain sensitive content.")
         case .aiEndpoint:
-            return "ClipFlow could not validate the AI endpoint."
+            return String(localized: "ClipFlow could not validate the AI endpoint.")
         case .aiConsent:
-            return "Remote AI consent is required before sending text."
+            return String(localized: "Remote AI consent is required before sending text.")
         case .aiRequest:
-            return "ClipFlow could not complete the AI request."
+            return String(localized: "ClipFlow could not complete the AI request.")
         case .releaseConfiguration:
-            return "ClipFlow found an invalid release configuration."
+            return String(localized: "ClipFlow found an invalid release configuration.")
         }
     }
 
@@ -837,6 +846,16 @@ private extension ClipboardStore {
         itemCache.removeAll()
         for surface in [ClipSurface.quickPanel, .library] {
             await reload(surface)
+        }
+    }
+
+    func updateItemInAllSessions(_ updated: ClipboardItem) {
+        for surface in [ClipSurface.quickPanel, .library] {
+            ensureSession(for: surface)
+            guard var current = sessions[surface] else { continue }
+            guard let index = current.items.firstIndex(where: { $0.id == updated.id }) else { continue }
+            current.items[index] = updated
+            sessions[surface] = current
         }
     }
 

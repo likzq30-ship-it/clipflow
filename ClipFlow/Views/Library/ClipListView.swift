@@ -113,7 +113,7 @@ private extension ClipListView {
 
             HStack(spacing: 8) {
                 Text(item.displayCategory)
-                Text("Copied \(item.copyCount)x")
+                Text(String(localized: "Copied \(item.copyCount)x"))
                 if item.isFavorite {
                     Image(systemName: "star.fill")
                         .foregroundStyle(.yellow)

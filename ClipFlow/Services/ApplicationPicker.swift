@@ -6,7 +6,7 @@ import UniformTypeIdentifiers
 struct ApplicationPicker {
     func pickBundleIdentifier() -> String? {
         let panel = NSOpenPanel()
-        panel.title = "Choose Application"
+        panel.title = String(localized: "Choose Application")
         panel.canChooseFiles = true
         panel.canChooseDirectories = false
         panel.allowsMultipleSelection = false
